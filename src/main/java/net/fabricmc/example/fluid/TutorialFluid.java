@@ -3,6 +3,7 @@ package net.fabricmc.example.fluid;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
@@ -11,7 +12,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 
-public abstract class TutorialFluid extends FlowableFluidExtension{
+public abstract class TutorialFluid extends FlowableFluid {
     /**
      * @return whether the given fluid an instance of this fluid
      */

@@ -3,28 +3,21 @@ package net.fabricmc.example.mixin;
 
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import net.fabricmc.example.ExampleMod;
-import net.fabricmc.example.fluid.FlowableFluidExtension;
+import net.fabricmc.example.fluid.FlowableFluidExtensions;
 import net.fabricmc.example.interfaces.CustomFluidInterface;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.tag.FluidTags;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Iterator;
 
 @Mixin(Entity.class)
 public abstract class EntityMixin implements CustomFluidInterface {
@@ -126,7 +119,7 @@ public abstract class EntityMixin implements CustomFluidInterface {
 
     void checkCustomFluidState() {
         FluidState fluidState = this.world.getFluidState(this.getBlockPos());
-        if (fluidState.getFluid() instanceof FlowableFluidExtension fluid) {
+        if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
             if (this.getVehicle() instanceof BoatEntity) {
                 System.out.println("False A");
                 this.inCustomFluid = false;
@@ -182,7 +175,7 @@ public abstract class EntityMixin implements CustomFluidInterface {
         boolean canSwimIn = false;
         if (this.isInCustomFluid()) {
             FluidState fluidState = this.world.getFluidState(this.getBlockPos());
-            if (fluidState.getFluid() instanceof FlowableFluidExtension fluid) {
+            if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
                 canSwimIn = fluid.canSwimIn(fluidState, ((Entity) (Object) this));
             }
             if (this.isSwimming()) {

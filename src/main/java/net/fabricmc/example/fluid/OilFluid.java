@@ -12,7 +12,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import org.jetbrains.annotations.Nullable;
 
-public class OilFluid extends TutorialFluid {
+public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
     @Override
     public Fluid getStill() {
         return ExampleMod.STILL_OIL;

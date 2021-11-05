@@ -22,18 +22,18 @@ import net.minecraft.world.WorldView;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class FlowableFluidExtension extends FlowableFluid {
+public interface FlowableFluidExtensions {
 
-    public abstract float getHorizontalViscosity(FluidState state, Entity entity);
+    public float getHorizontalViscosity(FluidState state, Entity entity);
 
-    public abstract float getVerticalViscosity(FluidState state, Entity entity);
+    public float getVerticalViscosity(FluidState state, Entity entity);
 
-    public abstract float getPushStrength(FluidState state, Entity entity);
+    public float getPushStrength(FluidState state, Entity entity);
 
-    public abstract boolean canSwimIn(FluidState state, Entity entity);
+    public boolean canSwimIn(FluidState state, Entity entity);
 
-    public abstract boolean enableDepthStrider(FluidState state, Entity entity);
+    public boolean enableDepthStrider(FluidState state, Entity entity);
 
-    public abstract boolean enableDolphinsGrace(FluidState state, Entity entity);
+    public boolean enableDolphinsGrace(FluidState state, Entity entity);
 
 }

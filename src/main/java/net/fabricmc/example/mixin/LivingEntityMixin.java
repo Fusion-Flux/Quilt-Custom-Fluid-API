@@ -1,7 +1,7 @@
 package net.fabricmc.example.mixin;
 
 import net.fabricmc.example.ExampleMod;
-import net.fabricmc.example.fluid.FlowableFluidExtension;
+import net.fabricmc.example.fluid.FlowableFluidExtensions;
 import net.fabricmc.example.interfaces.CustomFluidInterface;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
@@ -9,7 +9,6 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.fluid.EmptyFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.sound.SoundEvent;
@@ -233,7 +232,7 @@ public abstract class LivingEntityMixin extends Entity {
                 float horizVisc = 0.8F;
                 float vertVisc = 0.800000011920929F;
 
-                if ((fluidState.getFluid() instanceof FlowableFluidExtension fluid)) {
+                if ((fluidState.getFluid() instanceof FlowableFluidExtensions fluid)) {
 
                     horizVisc = this.isSprinting() ? 0.9f : fluid.getHorizontalViscosity(fluidState, this);
 
@@ -242,7 +241,7 @@ public abstract class LivingEntityMixin extends Entity {
                 float g = 0.02F;
                 //
 
-                if ((fluidState.getFluid() instanceof FlowableFluidExtension fluid)) {
+                if ((fluidState.getFluid() instanceof FlowableFluidExtensions fluid)) {
                     if (fluid.enableDepthStrider(fluidState,this)) {
                         float h = (float) EnchantmentHelper.getDepthStrider(((LivingEntity) (Object) this));
                         if (h > 3.0F) {
