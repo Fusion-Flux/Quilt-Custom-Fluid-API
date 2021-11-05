@@ -124,23 +124,32 @@ public abstract class LivingEntityMixin extends Entity {
     @Shadow
     protected abstract void jump();
 
-    @Shadow protected abstract void tickFallFlying();
+    @Shadow
+    protected abstract void tickFallFlying();
 
-    @Shadow public float upwardSpeed;
+    @Shadow
+    public float upwardSpeed;
 
-    @Shadow public abstract boolean isDead();
+    @Shadow
+    public abstract boolean isDead();
 
-    @Shadow protected abstract void removePowderSnowSlow();
+    @Shadow
+    protected abstract void removePowderSnowSlow();
 
-    @Shadow protected abstract void addPowderSnowSlowIfNeeded();
+    @Shadow
+    protected abstract void addPowderSnowSlowIfNeeded();
 
-    @Shadow protected int riptideTicks;
+    @Shadow
+    protected int riptideTicks;
 
-    @Shadow protected abstract void tickRiptide(Box a, Box b);
+    @Shadow
+    protected abstract void tickRiptide(Box a, Box b);
 
-    @Shadow protected abstract void tickCramming();
+    @Shadow
+    protected abstract void tickCramming();
 
-    @Shadow public abstract boolean hurtByWater();
+    @Shadow
+    public abstract boolean hurtByWater();
 
     public LivingEntityMixin(EntityType<?> type, World world) {
         super(type, world);
@@ -221,15 +230,41 @@ public abstract class LivingEntityMixin extends Entity {
                 }
             } else if (((CustomFluidInterface) this).isInCustomFluid() && this.shouldSwimInFluids() && !this.canWalkOnFluid(fluidState.getFluid())) { //custom code here
                 e = this.getY();
-                float horizVisc=1;
-                float vertVisc=1;
+                float horizVisc = 0.8F;
+                float vertVisc = 0.800000011920929F;
 
-                if (this.world.getFluidState(this.getBlockPos()).isIn(ExampleMod.FABRIC_FLUIDS)) {
-                    horizVisc = this.isSprinting() ? ((FlowableFluidExtension) fluidState.getFluid()).getViscosity(fluidState)+0.1f : ((FlowableFluidExtension) fluidState.getFluid()).getViscosity(fluidState);
-                    vertVisc = ((FlowableFluidExtension) fluidState.getFluid()).getVerticalViscosity(fluidState);
+                if ((fluidState.getFluid() instanceof FlowableFluidExtension fluid)) {
+
+                    horizVisc = this.isSprinting() ? 0.9f : fluid.getHorizontalViscosity(fluidState, this);
+
+                    vertVisc = fluid.getVerticalViscosity(fluidState, this);
                 }
                 float g = 0.02F;
+                //
 
+                if ((fluidState.getFluid() instanceof FlowableFluidExtension fluid)) {
+                    if (fluid.enableDepthStrider(fluidState,this)) {
+                        float h = (float) EnchantmentHelper.getDepthStrider(((LivingEntity) (Object) this));
+                        if (h > 3.0F) {
+                            h = 3.0F;
+                        }
+
+                        if (!this.onGround) {
+                            h *= 0.5F;
+                        }
+
+                        if (h > 0.0F) {
+                            horizVisc += (0.54600006F - horizVisc) * h / 3.0F;
+                            g += (this.getMovementSpeed() - g) * h / 3.0F;
+                        }
+                    }
+                    if (fluid.enableDolphinsGrace(fluidState, this)) {
+                        if (this.hasStatusEffect(StatusEffects.DOLPHINS_GRACE)) {
+                            horizVisc = 0.96F;
+                        }
+                    }
+                }
+                //
                 this.updateVelocity(g, movementInput);
                 this.move(MovementType.SELF, this.getVelocity());
                 Vec3d vec3d = this.getVelocity();
@@ -383,9 +418,9 @@ public abstract class LivingEntityMixin extends Entity {
         this.world.getProfiler().push("jump");
         if (this.jumping && this.shouldSwimInFluids()) {
             double l;
-            if (((CustomFluidInterface) this).isInCustomFluid()){
+            if (((CustomFluidInterface) this).isInCustomFluid()) {
                 l = this.getFluidHeight(ExampleMod.FABRIC_FLUIDS);
-            }else if (this.isInLava()) {
+            } else if (this.isInLava()) {
                 l = this.getFluidHeight(FluidTags.LAVA);
             } else {
                 l = this.getFluidHeight(FluidTags.WATER);
@@ -397,14 +432,14 @@ public abstract class LivingEntityMixin extends Entity {
 
             if (bl && (!this.onGround || l > m)) {
                 this.swimUpward(FluidTags.WATER);
-            }else if (blc && (!this.onGround || l > m)) {
+            } else if (blc && (!this.onGround || l > m)) {
                 this.swimUpward(ExampleMod.FABRIC_FLUIDS);
-            }else if (!this.isInLava() || this.onGround && !(l > m)) {
+            } else if (!this.isInLava() || this.onGround && !(l > m)) {
                 if ((this.onGround || bl && l <= m) && this.jumpingCooldown == 0) {
                     this.jump();
                     this.jumpingCooldown = 10;
                 }
-            }else {
+            } else {
                 this.swimUpward(FluidTags.LAVA);
             }
         } else {

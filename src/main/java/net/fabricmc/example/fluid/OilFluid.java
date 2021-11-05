@@ -2,11 +2,15 @@ package net.fabricmc.example.fluid;
 
 import net.fabricmc.example.ExampleMod;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.Entity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.item.Item;
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
+import org.jetbrains.annotations.Nullable;
 
 public class OilFluid extends TutorialFluid {
     @Override
@@ -40,25 +44,39 @@ public class OilFluid extends TutorialFluid {
     }
 
     @Override
-    public float getViscosity(FluidState state) {
+    public float getHorizontalViscosity(FluidState state, Entity entity) {
         return 0.5f;
     }
 
     @Override
-    public float getVerticalViscosity(FluidState state) {
+    public float getVerticalViscosity(FluidState state, Entity entity) {
         return 0.3f; //the default value for this is 0.800000011920929D its highly reccomended you dont change this
     }
 
     @Override
-    public float getPushStrength(FluidState state) {
+    public float getPushStrength(FluidState state, Entity entity) {
         return 0.0014f;
     }
 
     @Override
-    public boolean canSwimIn(FluidState state) {
+    public boolean canSwimIn(FluidState state, Entity entity) {
         return true;
     }
 
+    @Override
+    public boolean enableDepthStrider(FluidState state, Entity entity) {
+        return false;
+    }
+
+    @Override
+    public boolean enableDolphinsGrace(FluidState state, Entity entity) {
+        return false;
+    }
+
+    @Nullable
+    public ParticleEffect getParticle() {
+        return ParticleTypes.DRIPPING_HONEY;
+    }
 
     public static class Flowing extends OilFluid {
         @Override

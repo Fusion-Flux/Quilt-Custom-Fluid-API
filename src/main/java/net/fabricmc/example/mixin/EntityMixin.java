@@ -6,6 +6,7 @@ import net.fabricmc.example.ExampleMod;
 import net.fabricmc.example.fluid.FlowableFluidExtension;
 import net.fabricmc.example.interfaces.CustomFluidInterface;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -122,20 +123,14 @@ public abstract class EntityMixin implements CustomFluidInterface {
     }
 
 
-    protected boolean updateCustomFluidState() {
-        //this.fluidHeight.clear();
-        this.checkCustomFluidState();
-        return this.isInCustomFluid();
-    }
-
 
     void checkCustomFluidState() {
         FluidState fluidState = this.world.getFluidState(this.getBlockPos());
-        if (this.world.getFluidState(this.getBlockPos()).isIn(ExampleMod.FABRIC_FLUIDS)) {
+        if (fluidState.getFluid() instanceof FlowableFluidExtension fluid) {
             if (this.getVehicle() instanceof BoatEntity) {
                 System.out.println("False A");
                 this.inCustomFluid = false;
-            } else if (this.updateMovementInFluid(ExampleMod.FABRIC_FLUIDS, ((FlowableFluidExtension) fluidState.getFluid()).getPushStrength(fluidState))) {
+            } else if (this.updateMovementInFluid(ExampleMod.FABRIC_FLUIDS, fluid.getPushStrength(fluidState,((Entity) (Object) this)))) {
                 if (!this.inCustomFluid && !this.firstUpdate) {
                     this.onSwimmingStart();
                 }
@@ -186,9 +181,9 @@ public abstract class EntityMixin implements CustomFluidInterface {
     public void updateSwimming(CallbackInfo ci) {
         boolean canSwimIn = false;
         if (this.isInCustomFluid()) {
-            if (this.world.getFluidState(this.getBlockPos()).isIn(ExampleMod.FABRIC_FLUIDS)) {
-                FluidState fluidState = this.world.getFluidState(this.getBlockPos());
-                canSwimIn = ((FlowableFluidExtension) fluidState.getFluid()).canSwimIn(fluidState);
+            FluidState fluidState = this.world.getFluidState(this.getBlockPos());
+            if (fluidState.getFluid() instanceof FlowableFluidExtension fluid) {
+                canSwimIn = fluid.canSwimIn(fluidState, ((Entity) (Object) this));
             }
             if (this.isSwimming()) {
                 this.setSwimming(this.isSprinting() &&canSwimIn && this.isInCustomFluid() && !this.hasVehicle());

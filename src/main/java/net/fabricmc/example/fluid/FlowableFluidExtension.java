@@ -5,6 +5,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.data.client.model.BlockStateVariantMap;
+import net.minecraft.entity.Entity;
 import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
@@ -23,11 +24,16 @@ import java.util.Map;
 
 public abstract class FlowableFluidExtension extends FlowableFluid {
 
-    public abstract float getViscosity(FluidState state);
+    public abstract float getHorizontalViscosity(FluidState state, Entity entity);
 
-    public abstract float getVerticalViscosity(FluidState state);
+    public abstract float getVerticalViscosity(FluidState state, Entity entity);
 
-    public abstract float getPushStrength(FluidState state);
+    public abstract float getPushStrength(FluidState state, Entity entity);
 
-    public abstract boolean canSwimIn(FluidState state);
+    public abstract boolean canSwimIn(FluidState state, Entity entity);
+
+    public abstract boolean enableDepthStrider(FluidState state, Entity entity);
+
+    public abstract boolean enableDolphinsGrace(FluidState state, Entity entity);
+
 }
