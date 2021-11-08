@@ -21,6 +21,7 @@ import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.MathHelper;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(ClientPlayerEntity.class)
@@ -89,6 +90,10 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
     @Shadow
     protected abstract void startRidingJump();
 
+    /**
+     * @author
+     */
+    @Overwrite
     public void tickMovement() {
         ++this.ticksSinceSprintingChanged;
         if (this.ticksLeftToDoubleTapSprint > 0) {

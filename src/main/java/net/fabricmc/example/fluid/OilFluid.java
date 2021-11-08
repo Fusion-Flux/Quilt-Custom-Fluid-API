@@ -16,11 +16,14 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.Random;
 
 public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
     @Override
@@ -94,18 +97,38 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
     }
 
     @Override
-    public Optional<SoundEvent> getSplashSound() {
-        //For this example we will use the strider step sound in lava.
-        return Optional.of(SoundEvents.ENTITY_STRIDER_STEP_LAVA);
-    }
+    public void onSplash(World world, Vec3d pos, Entity entity, Random random) {
+        Entity entity2 = entity.hasPassengers() && entity.getPrimaryPassenger() != null ? entity.getPrimaryPassenger() : entity;
+        float f = entity2 == entity ? 0.2F : 0.9F;
+        Vec3d vec3d = entity2.getVelocity();
+        float g = Math.min(1.0F, (float)Math.sqrt(vec3d.x * vec3d.x * 0.20000000298023224D + vec3d.y * vec3d.y + vec3d.z * vec3d.z * 0.20000000298023224D) * f);
+        if (g < 0.25F) {
+            //A low velocity impact with a fluid
+            entity.playSound(SoundEvents.ENTITY_STRIDER_STEP_LAVA, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
+        } else {
+            //A high velocity impact with a fluid
+            entity.playSound(SoundEvents.ENTITY_GHAST_SCREAM, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
+        }
 
-    @Override
-    public void onSplash(World world, Vec3d pos, Entity entity) {
-        //You can use the parameters in this method to add the particles you want.
-        //This is an example that will show a smoke particle when hitting the fluid (or jumping on it).
-        //pos is the position where the player hitted the fluid.
-        //entity is the entity that caused the splash event.
-        world.addParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY(), pos.getZ(), 0.02d, 0.02d, 0.02d);
+        float h = (float) MathHelper.floor(entity.getY());
+
+        int j;
+        double k;
+        double l;
+        //bubble particles
+        for(j = 0; (float)j < 1.0F + entity.getDimensions(entity.getPose()).width * 20.0F; ++j) {
+            k = (random.nextDouble() * 2.0D - 1.0D) * (double)entity.getDimensions(entity.getPose()).width;
+            l = (random.nextDouble() * 2.0D - 1.0D) * (double)entity.getDimensions(entity.getPose()).width;
+            entity.world.addParticle(ParticleTypes.BUBBLE, entity.getX() + k, (double)(h + 1.0F), entity.getZ() + l, vec3d.x, vec3d.y - random.nextDouble() * 0.20000000298023224D, vec3d.z);
+        }
+        //water droplet splash particles
+        for(j = 0; (float)j < 1.0F + entity.getDimensions(entity.getPose()).width * 20.0F; ++j) {
+            k = (random.nextDouble() * 2.0D - 1.0D) * (double)entity.getDimensions(entity.getPose()).width;
+            l = (random.nextDouble() * 2.0D - 1.0D) * (double)entity.getDimensions(entity.getPose()).width;
+            entity.world.addParticle(ParticleTypes.SPLASH, entity.getX() + k, (double)(h + 1.0F), entity.getZ() + l, vec3d.x, vec3d.y, vec3d.z);
+        }
+
+        entity.emitGameEvent(GameEvent.SPLASH);
     }
 
     @Override

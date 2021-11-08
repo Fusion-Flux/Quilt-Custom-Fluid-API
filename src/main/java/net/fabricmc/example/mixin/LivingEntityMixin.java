@@ -227,7 +227,7 @@ public abstract class LivingEntityMixin extends Entity {
                 if (this.horizontalCollision && this.doesNotCollide(vec3d4.x, vec3d4.y + 0.6000000238418579D - this.getY() + e, vec3d4.z)) {
                     this.setVelocity(vec3d4.x, 0.30000001192092896D, vec3d4.z);
                 }
-            } else if (((CustomFluidInterface) this).isInCustomFluid() && this.shouldSwimInFluids() && !this.canWalkOnFluid(fluidState.getFluid())) { //custom code here
+            } else if (((CustomFluidInterface) this).isInCustomFluid() && this.shouldSwimInFluids() && !this.canWalkOnFluid(fluidState.getFluid())) { //added if statement
                 e = this.getY();
                 float horizVisc = 0.8F;
                 float vertVisc = 0.800000011920929F;
@@ -400,6 +400,7 @@ public abstract class LivingEntityMixin extends Entity {
 
         this.world.getProfiler().pop();
         this.world.getProfiler().push("jump");
+        //modified if statement
         if (this.jumping && this.shouldSwimInFluids()) {
             double l;
             if (((CustomFluidInterface) this).isInCustomFluid()) {
