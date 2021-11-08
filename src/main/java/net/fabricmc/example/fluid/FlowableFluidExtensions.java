@@ -175,6 +175,15 @@ public interface FlowableFluidExtensions {
         return 300;
     }
 
+    /**
+     * 0 waters default equals complete fall damage reduction
+     * 0.5 lavas default equals half fall damage reduction
+     * 1 is no fall damage reduction whatsoever
+     */
+    default float fallDamageReduction(Entity entity) {
+        return 0;
+    }
+
     int getFogColor(Entity entity);
 
     float getFogStart(Entity entity);

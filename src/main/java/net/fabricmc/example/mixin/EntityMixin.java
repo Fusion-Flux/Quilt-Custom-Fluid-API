@@ -138,7 +138,7 @@ public abstract class EntityMixin implements CustomFluidInterface {
                     this.customSplashEffects();
                 }
 
-                this.fallDistance = 0.0F;
+                this.fallDistance = fluid.fallDamageReduction(((Entity) (Object) this));
                 this.inCustomFluid = true;
                 if(fluid.canExtinguish(((Entity) (Object) this))) {
                     this.extinguish();

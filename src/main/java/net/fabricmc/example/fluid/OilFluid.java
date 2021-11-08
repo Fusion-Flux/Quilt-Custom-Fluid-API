@@ -195,6 +195,10 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
             public float defaultTemperature(World world, BlockPos blockpos) {
                 return 300;
             }
+@Override
+    public float fallDamageReduction(Entity entity) {
+        return 0.8f;
+    }
 
     @Override
     public float defaultDensity(World world, BlockPos blockpos) {
