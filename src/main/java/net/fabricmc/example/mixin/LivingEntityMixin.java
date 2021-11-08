@@ -242,26 +242,11 @@ public abstract class LivingEntityMixin extends Entity {
                 //
 
                 if ((fluidState.getFluid() instanceof FlowableFluidExtensions fluid)) {
-                    if (fluid.enableDepthStrider(this)) {
-                        float h = (float) EnchantmentHelper.getDepthStrider(((LivingEntity) (Object) this));
-                        if (h > 3.0F) {
-                            h = 3.0F;
-                        }
+                    float[] f = fluid.customEnchantmentEffects(movementInput,((LivingEntity) (Object) this),horizVisc,g);
+                    horizVisc = f[0];
+                    g = f[1];
 
-                        if (!this.onGround) {
-                            h *= 0.5F;
-                        }
-
-                        if (h > 0.0F) {
-                            horizVisc += (0.54600006F - horizVisc) * h / 3.0F;
-                            g += (this.getMovementSpeed() - g) * h / 3.0F;
-                        }
-                    }
-                    if (fluid.enableDolphinsGrace(this)) {
-                        if (this.hasStatusEffect(StatusEffects.DOLPHINS_GRACE)) {
-                            horizVisc = 0.96F;
-                        }
-                    }
+                    horizVisc = fluid.customPotionEffects(((LivingEntity) (Object) this),horizVisc);
                 }
                 //
                 this.updateVelocity(g, movementInput);

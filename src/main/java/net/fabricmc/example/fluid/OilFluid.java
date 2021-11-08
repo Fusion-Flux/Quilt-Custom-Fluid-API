@@ -2,7 +2,11 @@ package net.fabricmc.example.fluid;
 
 import net.fabricmc.example.ExampleMod;
 import net.minecraft.block.BlockState;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MovementType;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.item.Item;
@@ -70,16 +74,6 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
     }
 
     @Override
-    public boolean enableDepthStrider(Entity entity) {
-        return false;
-    }
-
-    @Override
-    public boolean enableDolphinsGrace(Entity entity) {
-        return false;
-    }
-
-    @Override
     public int getFogColor(Entity focusedEntity) {
         //Set the fog color to #99ff33 for a light green acid.
         return 0x99ff33;
@@ -112,6 +106,35 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
         //pos is the position where the player hitted the fluid.
         //entity is the entity that caused the splash event.
         world.addParticle(ParticleTypes.SMOKE, pos.getX(), pos.getY(), pos.getZ(), 0.02d, 0.02d, 0.02d);
+    }
+
+    @Override
+    public float[] customEnchantmentEffects(Vec3d movementInput, LivingEntity entity,float horizVisc,float g) {
+        float[] j = new float[2];
+        float h = (float) EnchantmentHelper.getDepthStrider(entity);
+        if (h > 3.0F) {
+            h = 3.0F;
+        }
+
+        if (!entity.isOnGround()) {
+            h *= 0.5F;
+        }
+
+        if (h > 0.0F) {
+            horizVisc += (0.54600006F - horizVisc) * h / 3.0F;
+            g += (entity.getMovementSpeed() - g) * h / 3.0F;
+        }
+        j[0]=horizVisc;
+        j[1]=g;
+        return(j);
+    }
+
+    @Override
+    public float customPotionEffects(LivingEntity entity, float horizVisc) {
+        if (entity.hasStatusEffect(StatusEffects.DOLPHINS_GRACE)) {
+            horizVisc = 0.96F;
+        }
+        return horizVisc;
     }
 
     @Nullable
