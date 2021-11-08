@@ -153,6 +153,11 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
     }
 
     @Override
+    public boolean enableSpacebarSwimming(Entity entity){
+        return false;
+    }
+
+    @Override
     public float customPotionEffects(LivingEntity entity, float horizVisc) {
         if (entity.hasStatusEffect(StatusEffects.DOLPHINS_GRACE)) {
             horizVisc = 0.96F;

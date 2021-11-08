@@ -112,7 +112,6 @@ public abstract class EntityMixin implements CustomFluidInterface {
     public void baseTick(CallbackInfo ci) {
         this.checkCustomFluidState();
         this.updateSubmergedInCustomFluidState();
-        //this.updateSwimming(); do later
     }
 
     @Override

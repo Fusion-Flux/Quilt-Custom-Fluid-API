@@ -41,12 +41,6 @@ public interface FlowableFluidExtensions {
         return true;
     }
 
-    int getFogColor(Entity entity);
-
-    float getFogStart(Entity entity);
-
-    float getFogEnd(Entity entity);
-
     default void onSplash(World world, Vec3d pos, Entity entity, Random random){
         Entity entity2 = entity.hasPassengers() && entity.getPrimaryPassenger() != null ? entity.getPrimaryPassenger() : entity;
         float f = entity2 == entity ? 0.2F : 0.9F;
@@ -107,6 +101,17 @@ public interface FlowableFluidExtensions {
         }
         return horizVisc;
     }
+
+    default boolean enableSpacebarSwimming(Entity entity){
+        return true;
+    }
+
+    int getFogColor(Entity entity);
+
+    float getFogStart(Entity entity);
+
+    float getFogEnd(Entity entity);
+
 }
 
 

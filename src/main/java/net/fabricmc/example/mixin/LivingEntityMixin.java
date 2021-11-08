@@ -414,10 +414,15 @@ public abstract class LivingEntityMixin extends Entity {
             boolean bl = this.isTouchingWater() && l > 0.0D;
             boolean blc = (((CustomFluidInterface) this).isInCustomFluid()) && l > 0.0D;
             double m = this.getSwimHeight();
+            boolean canSpaceSwim = false;
+            FluidState fluidState = this.world.getFluidState(this.getBlockPos());
+            if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
+                canSpaceSwim = fluid.enableSpacebarSwimming(this);
+            }
 
             if (bl && (!this.onGround || l > m)) {
                 this.swimUpward(FluidTags.WATER);
-            } else if (blc && (!this.onGround || l > m)) {
+            } else if (blc && (!this.onGround || l > m) && canSpaceSwim) {
                 this.swimUpward(ExampleMod.FABRIC_FLUIDS);
             } else if (!this.isInLava() || this.onGround && !(l > m)) {
                 if ((this.onGround || bl && l <= m) && this.jumpingCooldown == 0) {
