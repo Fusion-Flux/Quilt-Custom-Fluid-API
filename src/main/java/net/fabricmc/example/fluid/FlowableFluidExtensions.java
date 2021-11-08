@@ -21,7 +21,7 @@ public interface FlowableFluidExtensions {
     default float getHorizontalViscosity(Entity entity){
         //0.8F is the default for water
         //0.5F is the default for lava
-        return 0.014F;
+        return 0.8F;
     }
 
     default float getVerticalViscosity(Entity entity){
