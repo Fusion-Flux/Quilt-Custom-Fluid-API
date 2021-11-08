@@ -48,18 +48,16 @@ public interface FlowableFluidExtensions {
     float getFogEnd(Entity entity);
 
     default void onSplash(World world, Vec3d pos, Entity entity, Random random){
-        //this will jus run whatever you want to happen when a user enters your fluid
-        //heres a copy of what water does
         Entity entity2 = entity.hasPassengers() && entity.getPrimaryPassenger() != null ? entity.getPrimaryPassenger() : entity;
         float f = entity2 == entity ? 0.2F : 0.9F;
         Vec3d vec3d = entity2.getVelocity();
         float g = Math.min(1.0F, (float)Math.sqrt(vec3d.x * vec3d.x * 0.20000000298023224D + vec3d.y * vec3d.y + vec3d.z * vec3d.z * 0.20000000298023224D) * f);
         if (g < 0.25F) {
             //A low velocity impact with a fluid
-            entity.playSound(SoundEvents.ENTITY_STRIDER_STEP_LAVA, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
+            entity.playSound(SoundEvents.ENTITY_PLAYER_SPLASH, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
         } else {
             //A high velocity impact with a fluid
-            entity.playSound(SoundEvents.ENTITY_GHAST_SCREAM, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
+            entity.playSound(SoundEvents.ENTITY_PLAYER_SPLASH_HIGH_SPEED, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
         }
 
         float h = (float) MathHelper.floor(entity.getY());

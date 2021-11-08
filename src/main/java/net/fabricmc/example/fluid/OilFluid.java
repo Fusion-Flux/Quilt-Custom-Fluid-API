@@ -63,7 +63,7 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
 
     @Override
     public float getVerticalViscosity(Entity entity) {
-        return 0.3f; //the default value for this is 0.800000011920929D its highly reccomended you dont change this
+        return 0.800000011920929f; //the default value for this is 0.800000011920929D its highly reccomended you dont change this
     }
 
     @Override
@@ -104,10 +104,10 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
         float g = Math.min(1.0F, (float)Math.sqrt(vec3d.x * vec3d.x * 0.20000000298023224D + vec3d.y * vec3d.y + vec3d.z * vec3d.z * 0.20000000298023224D) * f);
         if (g < 0.25F) {
             //A low velocity impact with a fluid
-            entity.playSound(SoundEvents.ENTITY_STRIDER_STEP_LAVA, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
+            entity.playSound(SoundEvents.ENTITY_PLAYER_SPLASH, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
         } else {
             //A high velocity impact with a fluid
-            entity.playSound(SoundEvents.ENTITY_GHAST_SCREAM, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
+            entity.playSound(SoundEvents.ENTITY_PLAYER_SPLASH_HIGH_SPEED, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
         }
 
         float h = (float) MathHelper.floor(entity.getY());
