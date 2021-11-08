@@ -140,7 +140,9 @@ public abstract class EntityMixin implements CustomFluidInterface {
 
                 this.fallDistance = 0.0F;
                 this.inCustomFluid = true;
-                this.extinguish();
+                if(fluid.canExtinguish(((Entity) (Object) this))) {
+                    this.extinguish();
+                }
             } else {
                 System.out.println("False B");
                 this.inCustomFluid = false;
