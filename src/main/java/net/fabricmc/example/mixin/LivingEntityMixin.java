@@ -1,16 +1,22 @@
 package net.fabricmc.example.mixin;
 
+import com.google.common.base.Objects;
 import net.fabricmc.example.ExampleMod;
 import net.fabricmc.example.fluid.FlowableFluidExtensions;
 import net.fabricmc.example.interfaces.CustomFluidInterface;
+import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffectUtil;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.tag.EntityTypeTags;
 import net.minecraft.tag.FluidTags;
@@ -24,9 +30,15 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Optional;
+import java.util.Random;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends Entity {
+public abstract class LivingEntityMixin extends Entity  {
 
     @Shadow
     public abstract boolean canMoveVoluntarily();
@@ -145,10 +157,63 @@ public abstract class LivingEntityMixin extends Entity {
     protected abstract void tickRiptide(Box a, Box b);
 
     @Shadow
+    protected abstract void applyMovementEffects(BlockPos pos) ;
+
+    @Shadow
     protected abstract void tickCramming();
 
     @Shadow
     public abstract boolean hurtByWater();
+
+    @Shadow private BlockPos lastBlockPos;
+
+    @Shadow protected abstract int getNextAirOnLand(int air);
+
+    @Shadow protected abstract int getNextAirUnderwater(int air);
+
+    @Shadow public abstract Random getRandom();
+
+    @Shadow public float lastHandSwingProgress;
+
+    @Shadow public float handSwingProgress;
+
+    @Shadow public abstract Optional<BlockPos> getSleepingPosition();
+
+    @Shadow protected abstract void setPositionInBed(BlockPos pos);
+
+    @Shadow public abstract boolean shouldDisplaySoulSpeedEffects();
+
+    @Shadow protected abstract void displaySoulSpeedEffects();
+
+    @Shadow public abstract boolean canBreatheInWater();
+
+    @Shadow public int hurtTime;
+
+    @Shadow protected abstract void updatePostDeath();
+
+    @Shadow protected int playerHitTimer;
+
+    @Shadow private LivingEntity attacking;
+
+    @Shadow @Nullable protected PlayerEntity attackingPlayer;
+
+    @Shadow private @Nullable LivingEntity attacker;
+
+    @Shadow public abstract void setAttacker(@Nullable LivingEntity attacker);
+
+    @Shadow private int lastAttackedTime;
+
+    @Shadow protected abstract void tickStatusEffects();
+
+    @Shadow protected float prevLookDirection;
+
+    @Shadow protected float lookDirection;
+
+    @Shadow public float bodyYaw;
+
+    @Shadow public float prevBodyYaw;
+
+    @Shadow public float prevHeadYaw;
 
     public LivingEntityMixin(EntityType<?> type, World world) {
         super(type, world);
@@ -477,5 +542,131 @@ public abstract class LivingEntityMixin extends Entity {
         }
 
     }
+
+    /**
+     * @author
+     */
+    @Overwrite
+    public void baseTick() {
+        this.lastHandSwingProgress = this.handSwingProgress;
+        if (this.firstUpdate) {
+            this.getSleepingPosition().ifPresent(this::setPositionInBed);
+        }
+
+        if (this.shouldDisplaySoulSpeedEffects()) {
+            this.displaySoulSpeedEffects();
+        }
+
+        super.baseTick();
+        this.world.getProfiler().push("livingEntityBaseTick");
+        boolean bl = ((LivingEntity) (Object) this) instanceof PlayerEntity;
+        if (this.isAlive()) {
+            if (this.isInsideWall()) {
+                this.damage(DamageSource.IN_WALL, 1.0F);
+            } else if (bl && !this.world.getWorldBorder().contains(this.getBoundingBox())) {
+                double d = this.world.getWorldBorder().getDistanceInsideBorder(this) + this.world.getWorldBorder().getSafeZone();
+                if (d < 0.0D) {
+                    double e = this.world.getWorldBorder().getDamagePerBlock();
+                    if (e > 0.0D) {
+                        this.damage(DamageSource.IN_WALL, (float)Math.max(1, MathHelper.floor(-d * e)));
+                    }
+                }
+            }
+        }
+
+        if (this.isFireImmune() || this.world.isClient) {
+            this.extinguish();
+        }
+
+
+        boolean bl2 = bl && ((PlayerEntity)((LivingEntity) (Object) this)).getAbilities().invulnerable;
+        if (this.isAlive()) {
+            if (this.isSubmergedIn(FluidTags.WATER) && !this.world.getBlockState(new BlockPos(this.getX(), this.getEyeY(), this.getZ())).isOf(Blocks.BUBBLE_COLUMN)) {
+                if (!this.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(((LivingEntity) (Object) this)) && !bl2) {
+                    this.setAir(this.getNextAirUnderwater(this.getAir()));
+                    if (this.getAir() == -20) {
+                        this.setAir(0);
+                        Vec3d vec3d = this.getVelocity();
+
+                        for(int i = 0; i < 8; ++i) {
+                            double f = this.random.nextDouble() - this.random.nextDouble();
+                            double g = this.random.nextDouble() - this.random.nextDouble();
+                            double h = this.random.nextDouble() - this.random.nextDouble();
+                            this.world.addParticle(ParticleTypes.BUBBLE, this.getX() + f, this.getY() + g, this.getZ() + h, vec3d.x, vec3d.y, vec3d.z);
+                        }
+
+                        this.damage(DamageSource.DROWN, 2.0F);
+                    }
+                }
+
+                if (!this.world.isClient && this.hasVehicle() && this.getVehicle() != null && !this.getVehicle().canBeRiddenInWater()) {
+                    this.stopRiding();
+                }
+                //an added else if between the if statement above and the else if below
+            } else if (((CustomFluidInterface) this).isSubmergedInCustom(ExampleMod.FABRIC_FLUIDS)) {
+                FluidState fluidState = this.world.getFluidState(this.getBlockPos());
+                if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
+                    fluid.drownEffects(((LivingEntity) (Object) this),this.getRandom());
+                }
+            }else if (this.getAir() < this.getMaxAir()) {
+                this.setAir(this.getNextAirOnLand(this.getAir()));
+            }
+
+            if (!this.world.isClient) {
+                BlockPos blockPos = this.getBlockPos();
+                if (!Objects.equal(this.lastBlockPos, blockPos)) {
+                    this.lastBlockPos = blockPos;
+                    this.applyMovementEffects(blockPos);
+                }
+            }
+        }
+
+        if (this.isAlive() && (this.isWet() || this.inPowderSnow)) {
+            if (!this.world.isClient && this.wasOnFire) {
+                this.playExtinguishSound();
+            }
+
+            this.extinguish();
+        }
+
+        if (this.hurtTime > 0) {
+            --this.hurtTime;
+        }
+
+        if (this.timeUntilRegen > 0 && !(((LivingEntity) (Object) this) instanceof ServerPlayerEntity)) {
+            --this.timeUntilRegen;
+        }
+
+        if (this.isDead()) {
+            this.updatePostDeath();
+        }
+
+        if (this.playerHitTimer > 0) {
+            --this.playerHitTimer;
+        } else {
+            this.attackingPlayer = null;
+        }
+
+        if (this.attacking != null && !this.attacking.isAlive()) {
+            this.attacking = null;
+        }
+
+        if (this.attacker != null) {
+            if (!this.attacker.isAlive()) {
+                this.setAttacker((LivingEntity)null);
+            } else if (this.age - this.lastAttackedTime > 100) {
+                this.setAttacker((LivingEntity)null);
+            }
+        }
+
+        this.tickStatusEffects();
+        this.prevLookDirection = this.lookDirection;
+        this.prevBodyYaw = this.bodyYaw;
+        this.prevHeadYaw = this.headYaw;
+        this.prevYaw = this.getYaw();
+        this.prevPitch = this.getPitch();
+        this.world.getProfiler().pop();
+    }
+
 }
 

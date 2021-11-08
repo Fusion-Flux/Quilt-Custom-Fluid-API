@@ -1,12 +1,17 @@
 package net.fabricmc.example.fluid;
 
+import com.google.common.base.Objects;
 import net.fabricmc.example.ExampleMod;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MovementType;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectUtil;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.item.Item;
@@ -16,6 +21,8 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
+import net.minecraft.tag.FluidTags;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -86,14 +93,15 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
     public float getFogStart(Entity focusedEntity) {
         //You can use focusedEntity to get the effects, just comment for now.
         //if (entity instanceof LivingEntity && ((LivingEntity)entity).hasStatusEffect(StatusEffects.FIRE_RESISTANCE)) return 0.0f;
-        return 0.25f;
+        return -8.0f;
     }
 
     @Override
     public float getFogEnd(Entity focusedEntity) {
         //You can use focusedEntity to get the effects, just comment for now.
         //if (entity instanceof LivingEntity && ((LivingEntity)entity).hasStatusEffect(StatusEffects.FIRE_RESISTANCE)) return 3.0f
-        return 1.0f;
+
+        return 96.0f;
     }
 
     @Override
@@ -154,8 +162,40 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
 
     @Override
     public boolean enableSpacebarSwimming(Entity entity){
-        return false;
+        return true;
     }
+
+    @Override
+    public void drownEffects(LivingEntity entity, Random random) {
+        boolean bl = entity instanceof PlayerEntity;
+        boolean bl2 = bl && ((PlayerEntity)entity).getAbilities().invulnerable;
+                if (!entity.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(entity) && !bl2) {
+                    entity.setAir(getNextAirSubmerged(entity.getAir(),entity,random));
+                    if (entity.getAir() == -20) {
+                        entity.setAir(0);
+                        Vec3d vec3d = entity.getVelocity();
+
+                        for(int i = 0; i < 8; ++i) {
+                            double f = random.nextDouble() - random.nextDouble();
+                            double g = random.nextDouble() - random.nextDouble();
+                            double h = random.nextDouble() - random.nextDouble();
+                            entity.world.addParticle(ParticleTypes.BUBBLE, entity.getX() + f, entity.getY() + g, entity.getZ() + h, vec3d.x, vec3d.y, vec3d.z);
+                        }
+
+                        entity.damage(DamageSource.DROWN, 2.0F);
+                    }
+                }
+                if (!entity.world.isClient && entity.hasVehicle() && entity.getVehicle() != null && !entity.getVehicle().canBeRiddenInWater()) {
+                    entity.stopRiding();
+                }
+            }
+
+    @Override
+    public int getNextAirSubmerged(int air,LivingEntity entity, Random random) {
+        int i = EnchantmentHelper.getRespiration(entity);
+        return i > 0 && random.nextInt(i + 1) > 0 ? air : air - 2;
+    }
+
 
     @Override
     public float customPotionEffects(LivingEntity entity, float horizVisc) {
@@ -198,5 +238,6 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
         public boolean isStill(FluidState fluidState) {
             return true;
         }
+
     }
 }

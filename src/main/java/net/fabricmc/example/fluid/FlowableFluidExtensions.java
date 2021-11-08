@@ -1,13 +1,21 @@
 package net.fabricmc.example.fluid;
 
+import net.fabricmc.example.ExampleMod;
+import net.fabricmc.example.interfaces.CameraInterface;
+import net.fabricmc.example.interfaces.CustomFluidInterface;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectUtil;
 import net.minecraft.entity.effect.StatusEffects;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -104,6 +112,35 @@ public interface FlowableFluidExtensions {
 
     default boolean enableSpacebarSwimming(Entity entity){
         return true;
+    }
+
+    default void drownEffects(LivingEntity entity, Random random) {
+        boolean bl = entity instanceof PlayerEntity;
+        boolean bl2 = bl && ((PlayerEntity)entity).getAbilities().invulnerable;
+        if (!entity.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(entity) && !bl2) {
+            entity.setAir(getNextAirSubmerged(entity.getAir(),entity,random));
+            if (entity.getAir() == -20) {
+                entity.setAir(0);
+                Vec3d vec3d = entity.getVelocity();
+
+                for(int i = 0; i < 8; ++i) {
+                    double f = random.nextDouble() - random.nextDouble();
+                    double g = random.nextDouble() - random.nextDouble();
+                    double h = random.nextDouble() - random.nextDouble();
+                    entity.world.addParticle(ParticleTypes.BUBBLE, entity.getX() + f, entity.getY() + g, entity.getZ() + h, vec3d.x, vec3d.y, vec3d.z);
+                }
+
+                entity.damage(DamageSource.DROWN, 2.0F);
+            }
+        }
+        if (!entity.world.isClient && entity.hasVehicle() && entity.getVehicle() != null && !entity.getVehicle().canBeRiddenInWater()) {
+            entity.stopRiding();
+        }
+    }
+
+    default int getNextAirSubmerged(int air,LivingEntity entity, Random random) {
+        int i = EnchantmentHelper.getRespiration(entity);
+        return i > 0 && random.nextInt(i + 1) > 0 ? air : air - 1;
     }
 
     int getFogColor(Entity entity);

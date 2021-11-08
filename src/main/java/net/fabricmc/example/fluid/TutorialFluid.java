@@ -82,4 +82,7 @@ public abstract class TutorialFluid extends FlowableFluid {
     protected float getBlastResistance() {
         return 100.0F;
     }
+
+
+
 }
