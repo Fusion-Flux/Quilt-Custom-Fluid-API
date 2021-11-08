@@ -4,12 +4,13 @@
   "package": "net.fabricmc.example.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
+    "BackgroundRendererMixin",
+    "CameraMixin",
     "ClientPlayerEntityMixin",
     "EntityMixin",
     "LivingEntityMixin"
   ],
   "client": [
-
   ],
   "injectors": {
     "defaultRequire": 1

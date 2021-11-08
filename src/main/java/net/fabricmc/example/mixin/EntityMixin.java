@@ -9,8 +9,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -91,6 +93,11 @@ public abstract class EntityMixin implements CustomFluidInterface {
 
     @Shadow
     private BlockPos blockPos;
+
+    @Shadow public abstract double getY();
+
+    @Shadow public abstract void playSound(SoundEvent sound, float volume, float pitch);
+
     protected boolean inCustomFluid;
 
     protected boolean submergedInCustomFluid;
@@ -123,9 +130,9 @@ public abstract class EntityMixin implements CustomFluidInterface {
             if (this.getVehicle() instanceof BoatEntity) {
                 System.out.println("False A");
                 this.inCustomFluid = false;
-            } else if (this.updateMovementInFluid(ExampleMod.FABRIC_FLUIDS, fluid.getPushStrength(fluidState,((Entity) (Object) this)))) {
+            } else if (this.updateMovementInFluid(ExampleMod.FABRIC_FLUIDS, fluid.getPushStrength(((Entity) (Object) this)))) {
                 if (!this.inCustomFluid && !this.firstUpdate) {
-                    this.onSwimmingStart();
+                    this.customSplashEffects();
                 }
 
                 this.fallDistance = 0.0F;
@@ -176,7 +183,7 @@ public abstract class EntityMixin implements CustomFluidInterface {
         if (this.isInCustomFluid()) {
             FluidState fluidState = this.world.getFluidState(this.getBlockPos());
             if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
-                canSwimIn = fluid.canSwimIn(fluidState, ((Entity) (Object) this));
+                canSwimIn = fluid.canSwimIn(((Entity) (Object) this));
             }
             if (this.isSwimming()) {
                 this.setSwimming(this.isSprinting() &&canSwimIn && this.isInCustomFluid() && !this.hasVehicle());
@@ -184,6 +191,18 @@ public abstract class EntityMixin implements CustomFluidInterface {
                 this.setSwimming(this.isSprinting() && this.isSubmergedInCustomFluid()&& canSwimIn && !this.hasVehicle() && this.world.getFluidState(this.blockPos).isIn(ExampleMod.FABRIC_FLUIDS));
             }
 
+        }
+    }
+
+    private void customSplashEffects() {
+        FluidState fluidState = this.world.getFluidState(this.blockPos);
+        if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
+
+            //Gets and play the splash sound
+            fluid.getSplashSound().ifPresent(soundEvent -> this.playSound(soundEvent, 1f, 1f));
+
+            //Execute the onSplash event
+            fluid.onSplash(this.world, new Vec3d(this.getX(), this.getY(), this.getZ()), (Entity)(Object)this);
         }
     }
 }
