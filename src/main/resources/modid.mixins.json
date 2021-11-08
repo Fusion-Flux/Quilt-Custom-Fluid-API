@@ -8,9 +8,7 @@
     "CameraMixin",
     "ClientPlayerEntityMixin",
     "EntityMixin",
-    "LavaFluidMixin",
-    "LivingEntityMixin",
-    "WaterFluidMixin"
+    "LivingEntityMixin"
   ],
   "client": [
   ],

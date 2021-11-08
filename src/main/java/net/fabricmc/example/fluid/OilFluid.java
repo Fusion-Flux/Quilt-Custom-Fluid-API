@@ -23,6 +23,7 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -190,6 +191,19 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
                 }
             }
 
+            @Override
+            public float defaultTemperature(World world, BlockPos blockpos) {
+                return 300;
+            }
+
+    @Override
+    public float defaultDensity(World world, BlockPos blockpos) {
+        return 1000;
+    }
+    @Override
+    public boolean canExtinguish(Entity entity) {
+        return false;
+    }
     @Override
     public int getNextAirSubmerged(int air,LivingEntity entity, Random random) {
         int i = EnchantmentHelper.getRespiration(entity);
@@ -204,6 +218,10 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
         }
         return horizVisc;
     }
+
+    public Direction getFlowAxis(){
+        return Direction.NORTH;
+    };
 
     @Nullable
     public ParticleEffect getParticle() {
