@@ -23,25 +23,24 @@ public class ExampleMod implements ModInitializer {
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LogManager.getLogger("modid");
-
+	public static final Tag<Fluid> FABRIC_FLUIDS = TagFactory.FLUID.create(new Identifier("modid", "fabric_fluid"));
 	public static FlowableFluid STILL_OIL;
 	public static FlowableFluid FLOWING_OIL;
 	public static Item OIL_BUCKET;
 	public static Block OIL;
-
-	public static final Tag<Fluid> FABRIC_FLUIDS = TagFactory.FLUID.create(new Identifier("modid", "fabric_fluid"));
 	//public static Tag<Fluid> FABRIC_FLUIDS = TagRegistry.fluid(new Identifier("modid", "fabric_fluid"));
-
+	
 	@Override
 	public void onInitialize() {
 		STILL_OIL = Registry.register(Registry.FLUID, new Identifier("modid", "oil"), new OilFluid.Still());
 		FLOWING_OIL = Registry.register(Registry.FLUID, new Identifier("modid", "flowing_oil"), new OilFluid.Flowing());
 		OIL_BUCKET = Registry.register(Registry.ITEM, new Identifier("modid", "oil_bucket"),
 				new BucketItem(STILL_OIL, new Item.Settings().recipeRemainder(Items.BUCKET).maxCount(1)));
-
-		OIL = Registry.register(Registry.BLOCK, new Identifier("modid", "oil"), new FluidBlock(STILL_OIL, FabricBlockSettings.copy(Blocks.WATER)){});
-
-
+		
+		OIL = Registry.register(Registry.BLOCK, new Identifier("modid", "oil"), new FluidBlock(STILL_OIL, FabricBlockSettings.copy(Blocks.WATER)) {
+		});
+		
+		
 		LOGGER.info("Hello Fabric world!");
 	}
 }

@@ -1,8 +1,5 @@
 package net.fabricmc.example.fluid;
 
-import net.fabricmc.example.ExampleMod;
-import net.fabricmc.example.interfaces.CameraInterface;
-import net.fabricmc.example.interfaces.CustomFluidInterface;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
@@ -12,184 +9,304 @@ import net.minecraft.entity.effect.StatusEffectUtil;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.particle.ParticleEffect;
+import net.minecraft.particle.ParticleType;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.Biome;
 import net.minecraft.world.event.GameEvent;
 
-import java.util.Optional;
 import java.util.Random;
 
 public interface FlowableFluidExtensions {
-
-    /**
-     * 0.8F is the default for water
-     * 0.5F is the default for lava
+	float WATER_VISCOSITY = 0.8f;
+	float LAVA_VISCOSITY = 0.5f;
+	float WATER_PUSH_STRENGTH = 0.014f;
+	float LAVA_PUSH_STRENGTH_OVERWORLD = 7 / 3000f;
+	float LAVA_PUSH_STRENGTH_ULTRAWARM = 0.007f;
+	float WATER_DENSITY = 1000f;
+	float LAVA_DENSITY = 3100f;
+	float WATER_DEFAULT_TEMP = 300f;
+	float LAVA_DEFAULT_TEMP = 1500f;
+	float WATER_FOG_START = -8.0f;
+	int WATER_FOG_COLOR = -1;
+	float FULL_FALL_DAMAGE_REDUCTION = 0f;
+	float HALF_FALL_DAMAGE_REDUCTION = 0.5f;
+	float NO_FALL_DAMAGE_REDUCTION = 0f;
+	int WATER_COLOR = 0;
+	int LAVA_COLOR = 0;
+	
+	/**
+	 * The color of this fluid.
+	 */
+	int getColor(FluidState state, World world, BlockPos pos);
+	
+	/**
+	 * 0.8F is the default for water
+	 * 0.5F is the default for lava
+	 * @see FlowableFluidExtensions#WATER_VISCOSITY
+	 * @see FlowableFluidExtensions#LAVA_VISCOSITY
+	 */
+	default float getHorizontalViscosity(FluidState state, Entity affected) {
+		return WATER_VISCOSITY;
+	}
+	
+	/**
+	 * Default for water and lava is 0.8F
+	 * @see FlowableFluidExtensions#WATER_VISCOSITY
+	 */
+	default float getVerticalViscosity(FluidState state, Entity affected) {
+		return WATER_VISCOSITY;
+	}
+	
+	/**
+	 * 0.014F is the default for water
+	 * 7 / 3000 is the default for lava in the overworld
+	 * 0.007F is the default for lava in the nether
+	 * @see FlowableFluidExtensions#WATER_PUSH_STRENGTH
+	 * @see FlowableFluidExtensions#LAVA_PUSH_STRENGTH_OVERWORLD
+	 * @see FlowableFluidExtensions#LAVA_PUSH_STRENGTH_ULTRAWARM
+	 */
+	default float getPushStrength(FluidState state, Entity affected) {
+		return WATER_PUSH_STRENGTH;
+	}
+	
+	/**
+	 * Toggles weather or not a player can sprint swim in your fluid
+	 */
+	default boolean canSprintSwim(FluidState state, Entity affected) {
+		return true;
+	}
+	
+	/**
+	 * @return an updated horizontalViscosity, modified to handle things such as potion effects
+	 */
+	default float modifyHorizontalViscosity(LivingEntity affected, float horizontalViscosity) {
+		if (affected.hasStatusEffect(StatusEffects.DOLPHINS_GRACE)) {
+			horizontalViscosity = 0.96f;
+		}
+		return horizontalViscosity;
+	}
+	
+	default boolean enableSpacebarSwimming(Entity affected) {
+		return true;
+	}
+	
+	default boolean canExtinguish(Entity affected) {
+		return true;
+	}
+	
+	default boolean canIgnite(Entity affected) {
+		return false;
+	}
+	
+	default void drownEffects(LivingEntity drowning, Random random) {
+		boolean isPlayer = drowning instanceof PlayerEntity player;
+		boolean invincible = isPlayer && ((PlayerEntity) drowning).getAbilities().invulnerable;
+		if (!drowning.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(drowning) && !invincible) {
+			drowning.setAir(getNextAirSubmerged(drowning.getAir(), drowning, random));
+			if (drowning.getAir() == -20) {
+				drowning.setAir(0);
+				Vec3d vec3d = drowning.getVelocity();
+				
+				for (int i = 0; i < 8; ++i) {
+					double f = random.nextDouble() - random.nextDouble();
+					double g = random.nextDouble() - random.nextDouble();
+					double h = random.nextDouble() - random.nextDouble();
+					drowning.world.addParticle(ParticleTypes.BUBBLE, drowning.getX() + f, drowning.getY() + g, drowning.getZ() + h, vec3d.x, vec3d.y, vec3d.z);
+				}
+				
+				drowning.damage(DamageSource.DROWN, 2.0F);
+			}
+		}
+		if (!drowning.world.isClient && drowning.hasVehicle() && drowning.getVehicle() != null && !drowning.getVehicle().canBeRiddenInWater()) {
+			drowning.stopRiding();
+		}
+	}
+	
+	default int getNextAirSubmerged(int air, LivingEntity entity, Random random) {
+		int i = EnchantmentHelper.getRespiration(entity);
+		return i > 0 && random.nextInt(i + 1) > 0 ? air : air - 1;
+	}
+	
+	/**
+	 * Density in kilograms per cubic meter
+	 * 1000 is the default for water
+	 * 3100 is the default for lava
+	 * @see FlowableFluidExtensions#WATER_DENSITY
+	 * @see FlowableFluidExtensions#LAVA_DENSITY
+	 */
+	default float defaultDensity(World world, BlockPos blockpos) {
+		return WATER_DENSITY;
+	}
+	
+	/**
+	 * Temperature in Kelvin
+	 * 300 is the default for water
+	 * 1500 is the default for lava
+	 * @see FlowableFluidExtensions#WATER_DEFAULT_TEMP
+	 * @see FlowableFluidExtensions#LAVA_DEFAULT_TEMP
+	 *
+	 */
+	default float defaultTemperature(World world, BlockPos blockpos) {
+		return WATER_DEFAULT_TEMP;
+	}
+	
+	/**
+	 * 0 waters default equals complete fall damage reduction
+	 * 0.5 lavas default equals half fall damage reduction
+	 * 1 is no fall damage reduction whatsoever
+	 * @see FlowableFluidExtensions#FULL_FALL_DAMAGE_REDUCTION
+	 * @see FlowableFluidExtensions#HALF_FALL_DAMAGE_REDUCTION
+	 * @see FlowableFluidExtensions#NO_FALL_DAMAGE_REDUCTION
+	 */
+	default float fallDamageReduction(Entity entity) {
+		return FULL_FALL_DAMAGE_REDUCTION;
+	}
+	
+	/**
+	 * Water fog color is special cased to be -1. Any other
+	 * value returned will be treated as a normal color.
+	 * @see FlowableFluidExtensions#WATER_FOG_COLOR
+	 */
+	default int getFogColor(FluidState state, Entity affected) {
+		return WATER_FOG_COLOR;
+	}
+	
+	/**
+     * @see FlowableFluidExtensions#WATER_FOG_START
      */
-    default float getHorizontalViscosity(Entity entity) {
-        return 0.8F;
-    }
-
-    /**
-     * Default for water and lava is 0.8F
-     * It's not recommended you change this
-     */
-    default float getVerticalViscosity(Entity entity) {
-        return 0.8F;
-    }
-    /**
-    * 0.014F is the default for water
-    * 0.0023333333333333335F is the default for lava in the overworld
-    * 0.007F is the default for lava in the nether
-    */
-    default float getPushStrength(Entity entity) {
-        return 0.014F;
-    }
-
-    /**
-     * Toggles weather or not a player can sprint swim in your fluid
-     */
-    default boolean canSwimIn(Entity entity) {
-        return true;
-    }
-
-    default void onSplash(World world, Vec3d pos, Entity entity, Random random) {
-        Entity entity2 = entity.hasPassengers() && entity.getPrimaryPassenger() != null ? entity.getPrimaryPassenger() : entity;
-        float f = entity2 == entity ? 0.2F : 0.9F;
-        Vec3d vec3d = entity2.getVelocity();
-        float g = Math.min(1.0F, (float) Math.sqrt(vec3d.x * vec3d.x * 0.2D + vec3d.y * vec3d.y + vec3d.z * vec3d.z * 0.2D) * f);
-        if (g < 0.25F) {
-            //A low velocity impact with a fluid
-            entity.playSound(SoundEvents.ENTITY_PLAYER_SPLASH, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
-        } else {
-            //A high velocity impact with a fluid
-            entity.playSound(SoundEvents.ENTITY_PLAYER_SPLASH_HIGH_SPEED, g, 1.0F + (random.nextFloat() - random.nextFloat()) * 0.4F);
-        }
-
-        float h = (float) MathHelper.floor(entity.getY());
-
-        int j;
-        double k;
-        double l;
-        //bubble particles
-        for (j = 0; (float) j < 1.0F + entity.getDimensions(entity.getPose()).width * 20.0F; ++j) {
-            k = (random.nextDouble() * 2.0D - 1.0D) * (double) entity.getDimensions(entity.getPose()).width;
-            l = (random.nextDouble() * 2.0D - 1.0D) * (double) entity.getDimensions(entity.getPose()).width;
-            entity.world.addParticle(ParticleTypes.BUBBLE, entity.getX() + k, (double) (h + 1.0F), entity.getZ() + l, vec3d.x, vec3d.y - random.nextDouble() * 0.20000000298023224D, vec3d.z);
-        }
-        //water droplet splash particles
-        for (j = 0; (float) j < 1.0F + entity.getDimensions(entity.getPose()).width * 20.0F; ++j) {
-            k = (random.nextDouble() * 2.0D - 1.0D) * (double) entity.getDimensions(entity.getPose()).width;
-            l = (random.nextDouble() * 2.0D - 1.0D) * (double) entity.getDimensions(entity.getPose()).width;
-            entity.world.addParticle(ParticleTypes.SPLASH, entity.getX() + k, (double) (h + 1.0F), entity.getZ() + l, vec3d.x, vec3d.y, vec3d.z);
-        }
-
-        entity.emitGameEvent(GameEvent.SPLASH);
-    }
-
-    default float[] customEnchantmentEffects(Vec3d movementInput, LivingEntity entity, float horizVisc, float g) {
-        float[] j = new float[2];
-        float h = (float) EnchantmentHelper.getDepthStrider(entity);
-        if (h > 3.0F) {
-            h = 3.0F;
-        }
-
-        if (!entity.isOnGround()) {
-            h *= 0.5F;
-        }
-
-        if (h > 0.0F) {
-            horizVisc += (0.54600006F - horizVisc) * h / 3.0F;
-            g += (entity.getMovementSpeed() - g) * h / 3.0F;
-        }
-        j[0] = horizVisc;
-        j[1] = g;
-        return (j);
-    }
-
-    default float customPotionEffects(LivingEntity entity, float horizVisc) {
-        if (entity.hasStatusEffect(StatusEffects.DOLPHINS_GRACE)) {
-            horizVisc = 0.96F;
-        }
-        return horizVisc;
-    }
-
-    default boolean enableSpacebarSwimming(Entity entity) {
-        return true;
-    }
-
-    default boolean canExtinguish(Entity entity) {
-        return true;
-    }
-
-    default void drownEffects(LivingEntity entity, Random random) {
-        boolean bl = entity instanceof PlayerEntity;
-        boolean bl2 = bl && ((PlayerEntity) entity).getAbilities().invulnerable;
-        if (!entity.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(entity) && !bl2) {
-            entity.setAir(getNextAirSubmerged(entity.getAir(), entity, random));
-            if (entity.getAir() == -20) {
-                entity.setAir(0);
-                Vec3d vec3d = entity.getVelocity();
-
-                for (int i = 0; i < 8; ++i) {
-                    double f = random.nextDouble() - random.nextDouble();
-                    double g = random.nextDouble() - random.nextDouble();
-                    double h = random.nextDouble() - random.nextDouble();
-                    entity.world.addParticle(ParticleTypes.BUBBLE, entity.getX() + f, entity.getY() + g, entity.getZ() + h, vec3d.x, vec3d.y, vec3d.z);
-                }
-
-                entity.damage(DamageSource.DROWN, 2.0F);
-            }
-        }
-        if (!entity.world.isClient && entity.hasVehicle() && entity.getVehicle() != null && !entity.getVehicle().canBeRiddenInWater()) {
-            entity.stopRiding();
-        }
-    }
-
-    default int getNextAirSubmerged(int air, LivingEntity entity, Random random) {
-        int i = EnchantmentHelper.getRespiration(entity);
-        return i > 0 && random.nextInt(i + 1) > 0 ? air : air - 1;
-    }
-
-    /**
-     *Density in KG/L
-     *1000 is the default for water
-     *1300 is the default for lava
-     */
-    default float defaultDensity(World world, BlockPos blockpos) {
-        return 1000;
-    }
-
-    /**
-     * Temperature is in Kelvin
-     * 300 is the default for water
-     * 1200 is the default for lava in the overworld
-     * 1500 is the default for lava in the nether
-     */
-    default float defaultTemperature(World world, BlockPos blockpos) {
-        return 300;
-    }
-
-    /**
-     * 0 waters default equals complete fall damage reduction
-     * 0.5 lavas default equals half fall damage reduction
-     * 1 is no fall damage reduction whatsoever
-     */
-    default float fallDamageReduction(Entity entity) {
-        return 0;
-    }
-
-    int getFogColor(Entity entity);
-
-    float getFogStart(Entity entity);
-
-    float getFogEnd(Entity entity);
-
+	default float getFogStart(FluidState state, Entity affected, float viewDistance) {
+		return WATER_FOG_START;
+	}
+	
+	/**
+	 * Only reason default impl is complicated is because
+	 * water has a fade-in effect. Feel free to disregard
+	 * it and simply return a value.
+	 */
+	default float getFogEnd(FluidState state, Entity affected, float viewDistance) {
+		float distance = 192.0F;
+		if (affected instanceof ClientPlayerEntity player) {
+			distance *= Math.max(0.25F, player.getUnderwaterVisibility());
+			Biome biome = player.world.getBiome(player.getBlockPos());
+			if (biome.getCategory() == Biome.Category.SWAMP) {
+				distance *= 0.85F;
+			}
+		}
+		return distance * 0.5f;
+	}
+	
+	default SoundEvent splashSound(Entity splashing, Vec3d splashPos, Random random) {
+		return SoundEvents.ENTITY_PLAYER_SPLASH;
+	}
+	
+	default SoundEvent highSpeedSplashSound(Entity splashing, Vec3d splashPos, Random random) {
+		return SoundEvents.ENTITY_PLAYER_SPLASH_HIGH_SPEED;
+	}
+	
+	default ParticleEffect splashParticle(Entity splashing, Vec3d splashPos, Random random) {
+		return ParticleTypes.SPLASH;
+	}
+	
+	default ParticleEffect bubbleParticle(Entity splashing, Vec3d splashPos, Random random) {
+		return ParticleTypes.BUBBLE;
+	}
+	
+	default GameEvent splashGameEvent(Entity splashing, Vec3d splashPos, Random random) {
+		return GameEvent.SPLASH;
+	}
+	
+	// Overriding of any methods below this comment is generally unnecessary,
+	// and only made available to cover as many cases as possible.
+	
+	default void spawnSplashParticles(Entity splashing, Vec3d splashPos, Random random) {
+		for (int i = 0; i < 1.0f + splashing.getDimensions(splashing.getPose()).width * 20.0f; ++i) {
+			double xOffset = (random.nextDouble() * 2.0 - 1.0) * (double) splashing.getDimensions(splashing.getPose()).width;
+			double zOffset = (random.nextDouble() * 2.0 - 1.0) * (double) splashing.getDimensions(splashing.getPose()).width;
+			int yFloor = MathHelper.floor(splashing.getY());
+			splashing.world.addParticle(
+					splashParticle(splashing, splashPos, random),
+					splashing.getX() + xOffset,
+					yFloor + 1.0f,
+					splashing.getZ() + zOffset,
+					splashPos.x,
+					splashPos.y,
+					splashPos.z
+			);
+		}
+	}
+	
+	default void spawnBubbleParticles(Entity splashing, Vec3d splashPos, Random random) {
+		for (int i = 0; i < 1.0f + splashing.getDimensions(splashing.getPose()).width * 20.0f; ++i) {
+			double xOffset = (random.nextDouble() * 2.0 - 1.0) * (double) splashing.getDimensions(splashing.getPose()).width;
+			double zOffset = (random.nextDouble() * 2.0 - 1.0) * (double) splashing.getDimensions(splashing.getPose()).width;
+			int yFloor = MathHelper.floor(splashing.getY());
+			splashing.world.addParticle(
+					bubbleParticle(splashing, splashPos, random),
+					splashing.getX() + xOffset,
+					yFloor + 1.0f,
+					splashing.getZ() + zOffset,
+					splashPos.x,
+					splashPos.y - random.nextDouble() * 0.2,
+					splashPos.z
+			);
+		}
+	}
+	
+	default void onSplash(World world, Vec3d pos, Entity splashing, Random random) {
+		Entity passenger = splashing.hasPassengers() && splashing.getPrimaryPassenger() != null ? splashing.getPrimaryPassenger() : splashing;
+		float volumeMultiplier = passenger == splashing ? 0.2f : 0.9f;
+		Vec3d velocity = passenger.getVelocity();
+		double volume = Math.min(
+				1.0f,
+				Math.sqrt(velocity.x * velocity.x * 0.2 + velocity.y * velocity.y + velocity.z * velocity.z * 0.2D) * volumeMultiplier
+		);
+		
+		splashing.playSound(
+				volume < 0.25f
+						? splashSound(splashing, pos, random)
+						: highSpeedSplashSound(splashing, pos, random),
+				(float) volume,
+				1.0f + (random.nextFloat() - random.nextFloat()) * 0.4f
+		);
+		
+		spawnBubbleParticles(splashing, pos, random);
+		spawnSplashParticles(splashing, pos, random);
+		
+		splashing.emitGameEvent(splashGameEvent(splashing, pos, random));
+	}
+	
+	/**
+	 * @return a float array where [0] holds updated horizontal viscosity, and [1] holds updated speed.
+	 */
+	default float[] customEnchantmentEffects(Vec3d movementInput, LivingEntity entity, float horizontalViscosity, float speed) {
+		float[] values = new float[2];
+		
+		float depthStriderLevel = EnchantmentHelper.getDepthStrider(entity);
+		if (depthStriderLevel > 3.0f) {
+			depthStriderLevel = 3.0f;
+		}
+		
+		if (!entity.isOnGround()) {
+			depthStriderLevel *= 0.5f;
+		}
+		
+		if (depthStriderLevel > 0.0f) {
+			horizontalViscosity += (0.546f - horizontalViscosity) * depthStriderLevel / 3.0f;
+			speed += (entity.getMovementSpeed() - speed) * depthStriderLevel / 3.0f;
+		}
+		
+		values[0] = horizontalViscosity;
+		values[1] = speed;
+		
+		return values;
+	}
 }
 
 
