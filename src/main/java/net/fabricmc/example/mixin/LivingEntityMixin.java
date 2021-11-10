@@ -66,17 +66,12 @@ public abstract class LivingEntityMixin extends Entity implements CustomFluidInt
 			double y = this.getY();
 			float horizVisc = 0.8f;
 			float vertVisc = 0.8f;
-			
-			if ((fluidState.getFluid() instanceof FlowableFluidExtensions fluid)) {
-				
-				horizVisc = this.isSprinting() ? 0.9f : fluid.getHorizontalViscosity(fluidState, this);
-				
-				vertVisc = fluid.getVerticalViscosity(fluidState, this);
-			}
 			float speed = 0.02F;
-			//
 			
 			if ((fluidState.getFluid() instanceof FlowableFluidExtensions fluid)) {
+				horizVisc = this.isSprinting() ? 0.9f : fluid.getHorizontalViscosity(fluidState, this);
+				vertVisc = fluid.getVerticalViscosity(fluidState, this);
+			
 				float[] values = fluid.customEnchantmentEffects(movementInput, ((LivingEntity) (Object) this), horizVisc, speed);
 				horizVisc = values[0];
 				speed = values[1];

@@ -10,7 +10,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleType;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -31,8 +30,8 @@ public interface FlowableFluidExtensions {
 	float LAVA_PUSH_STRENGTH_ULTRAWARM = 0.007f;
 	float WATER_DENSITY = 1000f;
 	float LAVA_DENSITY = 3100f;
-	float WATER_DEFAULT_TEMP = 300f;
-	float LAVA_DEFAULT_TEMP = 1500f;
+	float WATER_TEMPERATURE = 300f;
+	float LAVA_TEMPERATURE = 1500f;
 	float WATER_FOG_START = -8.0f;
 	int WATER_FOG_COLOR = -1;
 	float FULL_FALL_DAMAGE_REDUCTION = 0f;
@@ -102,7 +101,7 @@ public interface FlowableFluidExtensions {
 	}
 	
 	default boolean canIgnite(FluidState state, Entity affected) {
-		return false;
+		return !canExtinguish(state, affected);
 	}
 	
 	default void drownEffects(FluidState state, LivingEntity drowning, Random random) {
@@ -149,12 +148,12 @@ public interface FlowableFluidExtensions {
 	 * Temperature in Kelvin
 	 * 300 is the default for water
 	 * 1500 is the default for lava
-	 * @see FlowableFluidExtensions#WATER_DEFAULT_TEMP
-	 * @see FlowableFluidExtensions#LAVA_DEFAULT_TEMP
+	 * @see FlowableFluidExtensions#WATER_TEMPERATURE
+	 * @see FlowableFluidExtensions#LAVA_TEMPERATURE
 	 *
 	 */
 	default float defaultTemperature(World world, BlockPos blockpos) {
-		return WATER_DEFAULT_TEMP;
+		return WATER_TEMPERATURE;
 	}
 	
 	/**
