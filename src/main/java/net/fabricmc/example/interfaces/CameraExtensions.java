@@ -2,6 +2,6 @@ package net.fabricmc.example.interfaces;
 
 import net.minecraft.fluid.FluidState;
 
-public interface CameraInterface {
+public interface CameraExtensions {
 	FluidState getSubmergedFluidState();
 }

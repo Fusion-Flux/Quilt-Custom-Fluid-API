@@ -19,6 +19,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.event.GameEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
 
@@ -33,17 +34,17 @@ public interface FlowableFluidExtensions {
 	float WATER_TEMPERATURE = 300f;
 	float LAVA_TEMPERATURE = 1500f;
 	float WATER_FOG_START = -8.0f;
-	int WATER_FOG_COLOR = -1;
 	float FULL_FALL_DAMAGE_REDUCTION = 0f;
 	float HALF_FALL_DAMAGE_REDUCTION = 0.5f;
 	float NO_FALL_DAMAGE_REDUCTION = 0f;
-	int WATER_COLOR = 0;
-	int LAVA_COLOR = 0;
+	int WATER_FOG_COLOR = -1;
 	
 	/**
 	 * The color of this fluid.
 	 */
-	int getColor(FluidState state, World world, BlockPos pos);
+	default int getColor(FluidState state, World world, BlockPos pos) {
+		return world.getBiome(pos).getWaterColor();
+	}
 	
 	/**
 	 * 0.8F is the default for water
@@ -83,7 +84,7 @@ public interface FlowableFluidExtensions {
 	}
 	
 	/**
-	 * @return an updated horizontalViscosity, modified to handle things such as potion effects
+	 * @return an updated horizontalViscosity, specifically regarding potion effects
 	 */
 	default float modifyHorizontalViscosity(LivingEntity affected, float horizontalViscosity) {
 		if (affected.hasStatusEffect(StatusEffects.DOLPHINS_GRACE)) {
@@ -102,30 +103,6 @@ public interface FlowableFluidExtensions {
 	
 	default boolean canIgnite(FluidState state, Entity affected) {
 		return !canExtinguish(state, affected);
-	}
-	
-	default void drownEffects(FluidState state, LivingEntity drowning, Random random) {
-		boolean isPlayer = drowning instanceof PlayerEntity;
-		boolean invincible = isPlayer && ((PlayerEntity) drowning).getAbilities().invulnerable;
-		if (!drowning.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(drowning) && !invincible) {
-			drowning.setAir(getNextAirSubmerged(drowning.getAir(), drowning, random));
-			if (drowning.getAir() == -20) {
-				drowning.setAir(0);
-				Vec3d vec3d = drowning.getVelocity();
-				
-				for (int i = 0; i < 8; ++i) {
-					double f = random.nextDouble() - random.nextDouble();
-					double g = random.nextDouble() - random.nextDouble();
-					double h = random.nextDouble() - random.nextDouble();
-					drowning.world.addParticle(ParticleTypes.BUBBLE, drowning.getX() + f, drowning.getY() + g, drowning.getZ() + h, vec3d.x, vec3d.y, vec3d.z);
-				}
-				
-				drowning.damage(DamageSource.DROWN, 2.0F);
-			}
-		}
-		if (!drowning.world.isClient && drowning.hasVehicle() && drowning.getVehicle() != null && !drowning.getVehicle().canBeRiddenInWater()) {
-			drowning.stopRiding();
-		}
 	}
 	
 	default int getNextAirSubmerged(int air, LivingEntity entity, Random random) {
@@ -171,7 +148,6 @@ public interface FlowableFluidExtensions {
 	/**
 	 * Water fog color is special cased to be -1. Any other
 	 * value returned will be treated as a normal color.
-	 * @see FlowableFluidExtensions#WATER_FOG_COLOR
 	 */
 	default int getFogColor(FluidState state, Entity affected) {
 		return WATER_FOG_COLOR;
@@ -201,22 +177,27 @@ public interface FlowableFluidExtensions {
 		return distance * 0.5f;
 	}
 	
+	@Nullable
 	default SoundEvent splashSound(Entity splashing, Vec3d splashPos, Random random) {
 		return SoundEvents.ENTITY_PLAYER_SPLASH;
 	}
 	
+	@Nullable
 	default SoundEvent highSpeedSplashSound(Entity splashing, Vec3d splashPos, Random random) {
 		return SoundEvents.ENTITY_PLAYER_SPLASH_HIGH_SPEED;
 	}
 	
+	@Nullable
 	default ParticleEffect splashParticle(Entity splashing, Vec3d splashPos, Random random) {
 		return ParticleTypes.SPLASH;
 	}
 	
+	@Nullable
 	default ParticleEffect bubbleParticle(Entity splashing, Vec3d splashPos, Random random) {
 		return ParticleTypes.BUBBLE;
 	}
 	
+	@Nullable
 	default GameEvent splashGameEvent(Entity splashing, Vec3d splashPos, Random random) {
 		return GameEvent.SPLASH;
 	}
@@ -229,15 +210,18 @@ public interface FlowableFluidExtensions {
 			double xOffset = (random.nextDouble() * 2.0 - 1.0) * (double) splashing.getDimensions(splashing.getPose()).width;
 			double zOffset = (random.nextDouble() * 2.0 - 1.0) * (double) splashing.getDimensions(splashing.getPose()).width;
 			int yFloor = MathHelper.floor(splashing.getY());
-			splashing.world.addParticle(
-					splashParticle(splashing, splashPos, random),
-					splashing.getX() + xOffset,
-					yFloor + 1.0f,
-					splashing.getZ() + zOffset,
-					splashPos.x,
-					splashPos.y,
-					splashPos.z
-			);
+			ParticleEffect particle = splashParticle(splashing, splashPos, random);
+			if (particle != null) {
+				splashing.world.addParticle(
+						particle,
+						splashing.getX() + xOffset,
+						yFloor + 1.0f,
+						splashing.getZ() + zOffset,
+						splashPos.x,
+						splashPos.y,
+						splashPos.z
+				);
+			}
 		}
 	}
 	
@@ -246,15 +230,19 @@ public interface FlowableFluidExtensions {
 			double xOffset = (random.nextDouble() * 2.0 - 1.0) * (double) splashing.getDimensions(splashing.getPose()).width;
 			double zOffset = (random.nextDouble() * 2.0 - 1.0) * (double) splashing.getDimensions(splashing.getPose()).width;
 			int yFloor = MathHelper.floor(splashing.getY());
-			splashing.world.addParticle(
-					bubbleParticle(splashing, splashPos, random),
-					splashing.getX() + xOffset,
-					yFloor + 1.0f,
-					splashing.getZ() + zOffset,
-					splashPos.x,
-					splashPos.y - random.nextDouble() * 0.2,
-					splashPos.z
-			);
+			ParticleEffect particle = bubbleParticle(splashing, splashPos, random);
+			if (particle != null) {
+				splashing.world.addParticle(
+						particle,
+						splashing.getX() + xOffset,
+						yFloor + 1.0f,
+						splashing.getZ() + zOffset,
+						splashPos.x,
+						splashPos.y - random.nextDouble() * 0.2,
+						splashPos.z
+				);
+			}
+			
 		}
 	}
 	
@@ -267,21 +255,26 @@ public interface FlowableFluidExtensions {
 				Math.sqrt(velocity.x * velocity.x * 0.2 + velocity.y * velocity.y + velocity.z * velocity.z * 0.2D) * volumeMultiplier
 		);
 		
-		splashing.playSound(
-				volume < 0.25f
-						? splashSound(splashing, pos, random)
-						: highSpeedSplashSound(splashing, pos, random),
-				(float) volume,
-				1.0f + (random.nextFloat() - random.nextFloat()) * 0.4f
-		);
+		SoundEvent sound = volume < 0.25f ? splashSound(splashing, pos, random) : highSpeedSplashSound(splashing, pos, random);
+		if (sound != null) {
+			splashing.playSound(
+					sound,
+					(float) volume,
+					1.0f + (random.nextFloat() - random.nextFloat()) * 0.4f
+			);
+		}
 		
 		spawnBubbleParticles(splashing, pos, random);
 		spawnSplashParticles(splashing, pos, random);
 		
-		splashing.emitGameEvent(splashGameEvent(splashing, pos, random));
+		GameEvent splash = splashGameEvent(splashing, pos, random);
+		if (splash != null) {
+			splashing.emitGameEvent(splash);
+		}
 	}
 	
 	/**
+	 * Here you can modify viscosity and speed based on enchantments.
 	 * @return a float array where [0] holds updated horizontal viscosity, and [1] holds updated speed.
 	 */
 	default float[] customEnchantmentEffects(Vec3d movementInput, LivingEntity entity, float horizontalViscosity, float speed) {
@@ -305,6 +298,41 @@ public interface FlowableFluidExtensions {
 		values[1] = speed;
 		
 		return values;
+	}
+	
+	default void drownEffects(FluidState state, LivingEntity drowning, Random random) {
+		boolean isPlayer = drowning instanceof PlayerEntity;
+		boolean invincible = isPlayer && ((PlayerEntity) drowning).getAbilities().invulnerable;
+		if (!drowning.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(drowning) && !invincible) {
+			drowning.setAir(getNextAirSubmerged(drowning.getAir(), drowning, random));
+			// if out of air
+			if (drowning.getAir() == -20) {
+				drowning.setAir(0);
+				Vec3d vec3d = drowning.getVelocity();
+				
+				for (int i = 0; i < 8; ++i) {
+					double f = random.nextDouble() - random.nextDouble();
+					double g = random.nextDouble() - random.nextDouble();
+					double h = random.nextDouble() - random.nextDouble();
+					ParticleEffect particle = bubbleParticle(drowning, drowning.getPos(), random);
+					if (particle != null) {
+						drowning.world.addParticle(
+								particle,
+								drowning.getX() + f,
+								drowning.getY() + g,
+								drowning.getZ() + h,
+								vec3d.x, vec3d.y, vec3d.z);
+					}
+				}
+				
+				drowning.damage(DamageSource.DROWN, 2.0F);
+			}
+		}
+		
+		// dismount vehicles that can't swim (horses)
+		if (!drowning.world.isClient && drowning.hasVehicle() && drowning.getVehicle() != null && !drowning.getVehicle().canBeRiddenInWater()) {
+			drowning.stopRiding();
+		}
 	}
 }
 

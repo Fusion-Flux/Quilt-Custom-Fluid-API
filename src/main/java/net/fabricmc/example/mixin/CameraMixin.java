@@ -1,6 +1,6 @@
 package net.fabricmc.example.mixin;
 
-import net.fabricmc.example.interfaces.CameraInterface;
+import net.fabricmc.example.interfaces.CameraExtensions;
 import net.minecraft.client.render.Camera;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;
@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(Camera.class)
-public class CameraMixin implements CameraInterface {
+public class CameraMixin implements CameraExtensions {
 	@Shadow
 	private BlockView area;
 	@Shadow

@@ -3,7 +3,7 @@ package net.fabricmc.example.mixin;
 
 import net.fabricmc.example.ExampleMod;
 import net.fabricmc.example.fluid.FlowableFluidExtensions;
-import net.fabricmc.example.interfaces.CustomFluidInterface;
+import net.fabricmc.example.interfaces.CustomFluidInteracting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.Fluid;
@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Random;
 
 @Mixin(Entity.class)
-public abstract class EntityMixin implements CustomFluidInterface {
+public abstract class EntityMixin implements CustomFluidInteracting {
 	@Shadow
 	public float fallDistance;
 	@Shadow

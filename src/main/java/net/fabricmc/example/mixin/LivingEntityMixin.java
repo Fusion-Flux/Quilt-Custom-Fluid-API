@@ -2,7 +2,7 @@ package net.fabricmc.example.mixin;
 
 import net.fabricmc.example.ExampleMod;
 import net.fabricmc.example.fluid.FlowableFluidExtensions;
-import net.fabricmc.example.interfaces.CustomFluidInterface;
+import net.fabricmc.example.interfaces.CustomFluidInteracting;
 import net.minecraft.entity.*;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffects;
@@ -13,7 +13,6 @@ import net.minecraft.tag.Tag;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -23,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Random;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends Entity implements CustomFluidInterface {
+public abstract class LivingEntityMixin extends Entity implements CustomFluidInteracting {
 	public LivingEntityMixin(EntityType<?> type, World world) {
 		super(type, world);
 	}

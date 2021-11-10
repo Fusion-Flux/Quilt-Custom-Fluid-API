@@ -2,14 +2,12 @@ package net.fabricmc.example.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.example.fluid.FlowableFluidExtensions;
-import net.fabricmc.example.interfaces.CameraInterface;
+import net.fabricmc.example.interfaces.CameraExtensions;
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -32,7 +30,7 @@ public class BackgroundRendererMixin {
 			cancellable = true)
 	private static void render(Camera camera, float tickDelta, ClientWorld world, int i, float f, CallbackInfo ci) {
 		//Get the fluid that submerged the camera
-		FluidState fluidState = ((CameraInterface) camera).getSubmergedFluidState();
+		FluidState fluidState = ((CameraExtensions) camera).getSubmergedFluidState();
 		
 		//If this is an instance of FabricFlowableFluid interface...
 		if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
@@ -60,7 +58,7 @@ public class BackgroundRendererMixin {
 			cancellable = true)
 	private static void applyFog(Camera camera, BackgroundRenderer.FogType fogType, float viewDistance, boolean thickFog, CallbackInfo ci) {
 		//Get the fluid that submerged the camera
-		FluidState fluidState = ((CameraInterface) camera).getSubmergedFluidState();
+		FluidState fluidState = ((CameraExtensions) camera).getSubmergedFluidState();
 		
 		//If this is an instance of FabricFlowableFluid interface...
 		if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
