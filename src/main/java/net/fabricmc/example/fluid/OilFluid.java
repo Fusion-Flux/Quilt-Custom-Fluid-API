@@ -146,12 +146,12 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
 	}
 	
 	@Override
-	public boolean enableSpacebarSwimming(Entity entity) {
+	public boolean enableSpacebarSwimming(FluidState state, Entity entity) {
 		return true;
 	}
 	
 	@Override
-	public void drownEffects(LivingEntity entity, Random random) {
+	public void drownEffects(FluidState state, LivingEntity entity, Random random) {
 		boolean bl = entity instanceof PlayerEntity;
 		boolean bl2 = bl && ((PlayerEntity) entity).getAbilities().invulnerable;
 		if (!entity.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(entity) && !bl2) {
@@ -189,7 +189,7 @@ public class OilFluid extends TutorialFluid implements FlowableFluidExtensions {
 	}
 	
 	@Override
-	public boolean canExtinguish(Entity entity) {
+	public boolean canExtinguish(FluidState state, Entity entity) {
 		return false;
 	}
 	

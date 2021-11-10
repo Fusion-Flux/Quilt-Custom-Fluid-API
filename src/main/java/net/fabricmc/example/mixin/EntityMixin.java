@@ -108,10 +108,10 @@ public abstract class EntityMixin implements CustomFluidInterface {
 			fallDistance = fluid.fallDamageReduction(((Entity) (Object) this));
 			inCustomFluid = true;
 			
-			if (fluid.canExtinguish((Entity) (Object) this)) {
+			if (fluid.canExtinguish(fluidState, (Entity) (Object) this)) {
 				extinguish();
 			}
-			if (fluid.canIgnite((Entity) (Object) this)) {
+			if (fluid.canIgnite(fluidState, (Entity) (Object) this)) {
 				setOnFireFromLava();
 			}
 			return;
@@ -120,7 +120,7 @@ public abstract class EntityMixin implements CustomFluidInterface {
 	}
 	
 	private void updateSubmergedInCustomFluidState() {
-		this.submergedInCustomFluid = this.isSubmergedInCustom(ExampleMod.FABRIC_FLUIDS);
+		this.submergedInCustomFluid = this.isSubmergedInCustomFluid(ExampleMod.FABRIC_FLUIDS);
 		this.submergedCustomFluidTag = null;
 		double d = this.getEyeY() - 0.1111111119389534D;
 		Entity entity = this.getVehicle();
@@ -141,7 +141,7 @@ public abstract class EntityMixin implements CustomFluidInterface {
 		
 	}
 	
-	public boolean isSubmergedInCustom(Tag<Fluid> fluidTag) {
+	public boolean isSubmergedInCustomFluid(Tag<Fluid> fluidTag) {
 		return this.submergedCustomFluidTag == fluidTag;
 	}
 	

@@ -93,20 +93,20 @@ public interface FlowableFluidExtensions {
 		return horizontalViscosity;
 	}
 	
-	default boolean enableSpacebarSwimming(Entity affected) {
+	default boolean enableSpacebarSwimming(FluidState state, Entity affected) {
 		return true;
 	}
 	
-	default boolean canExtinguish(Entity affected) {
+	default boolean canExtinguish(FluidState state, Entity affected) {
 		return true;
 	}
 	
-	default boolean canIgnite(Entity affected) {
+	default boolean canIgnite(FluidState state, Entity affected) {
 		return false;
 	}
 	
-	default void drownEffects(LivingEntity drowning, Random random) {
-		boolean isPlayer = drowning instanceof PlayerEntity player;
+	default void drownEffects(FluidState state, LivingEntity drowning, Random random) {
+		boolean isPlayer = drowning instanceof PlayerEntity;
 		boolean invincible = isPlayer && ((PlayerEntity) drowning).getAbilities().invulnerable;
 		if (!drowning.canBreatheInWater() && !StatusEffectUtil.hasWaterBreathing(drowning) && !invincible) {
 			drowning.setAir(getNextAirSubmerged(drowning.getAir(), drowning, random));

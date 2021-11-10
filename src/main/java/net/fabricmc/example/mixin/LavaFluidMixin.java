@@ -39,7 +39,7 @@ public abstract class LavaFluidMixin extends FlowableFluid implements FlowableFl
 	}
 
 	@Override
-	public boolean canExtinguish(Entity effected) {
+	public boolean canExtinguish(FluidState state, Entity effected) {
 		return false;
 	}
 
