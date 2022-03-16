@@ -1,4 +1,4 @@
-package net.fabricmc.example.interfaces;
+package org.quiltmc.qsl.fluid.interfaces;
 
 import net.minecraft.fluid.FluidState;
 

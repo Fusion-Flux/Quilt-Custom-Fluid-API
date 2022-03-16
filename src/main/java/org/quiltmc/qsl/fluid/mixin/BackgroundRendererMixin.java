@@ -1,8 +1,8 @@
-package net.fabricmc.example.mixin;
+package org.quiltmc.qsl.fluid.mixin;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.fabricmc.example.fluid.FlowableFluidExtensions;
-import net.fabricmc.example.interfaces.CameraExtensions;
+import org.quiltmc.qsl.fluid.fluid.FlowableFluidExtensions;
+import org.quiltmc.qsl.fluid.interfaces.CameraExtensions;
 import net.minecraft.client.render.BackgroundRenderer;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.world.ClientWorld;

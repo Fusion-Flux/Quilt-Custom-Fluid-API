@@ -1,7 +1,7 @@
-package net.fabricmc.example.mixin;
+package org.quiltmc.qsl.fluid.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.fabricmc.example.interfaces.CustomFluidInteracting;
+import org.quiltmc.qsl.fluid.interfaces.CustomFluidInteracting;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;

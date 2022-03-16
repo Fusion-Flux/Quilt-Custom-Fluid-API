@@ -1,6 +1,6 @@
-package net.fabricmc.example.mixin;
+package org.quiltmc.qsl.fluid.mixin;
 
-import net.fabricmc.example.fluid.FlowableFluidExtensions;
+import org.quiltmc.qsl.fluid.fluid.FlowableFluidExtensions;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffects;
@@ -9,7 +9,6 @@ import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.LavaFluid;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;

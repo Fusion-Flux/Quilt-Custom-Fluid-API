@@ -1,15 +1,14 @@
-package net.fabricmc.example.mixin;
+package org.quiltmc.qsl.fluid.mixin;
 
-import net.fabricmc.example.ExampleMod;
-import net.fabricmc.example.fluid.FlowableFluidExtensions;
-import net.fabricmc.example.interfaces.CustomFluidInteracting;
+import org.quiltmc.qsl.fluid.QuiltFluidAPI;
+import org.quiltmc.qsl.fluid.fluid.FlowableFluidExtensions;
+import org.quiltmc.qsl.fluid.interfaces.CustomFluidInteracting;
 import net.minecraft.entity.*;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.tag.FluidTags;
-import net.minecraft.tag.Tag;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -41,9 +40,6 @@ public abstract class LivingEntityMixin extends Entity implements CustomFluidInt
 	public abstract Vec3d method_26317(double d, boolean bl, Vec3d vec3d);
 
 	@Shadow
-	protected abstract int getNextAirOnLand(int air);
-
-	@Shadow
 	public abstract Random getRandom();
 
 
@@ -61,7 +57,7 @@ public abstract class LivingEntityMixin extends Entity implements CustomFluidInt
 			boolean falling = this.getVelocity().y <= 0.0;
 			if (falling && this.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
 				fallSpeed = 0.01;
-				this.fallDistance = 0.0F;
+				this.onLanding();
 			}
 			
 			double y = this.getY();
@@ -110,7 +106,7 @@ public abstract class LivingEntityMixin extends Entity implements CustomFluidInt
 			at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getFluidHeight(Lnet/minecraft/tag/TagKey;)D", ordinal = 1))
 	private double redirectGetFluidHeight(LivingEntity instance, TagKey<Fluid> tag) {
 		if (isInCustomFluid()) {
-			return getFluidHeight(ExampleMod.FABRIC_FLUIDS);
+			return getFluidHeight(QuiltFluidAPI.QUILT_FLUIDS);
 		}
 		return getFluidHeight(FluidTags.WATER);
 	}
@@ -129,12 +125,12 @@ public abstract class LivingEntityMixin extends Entity implements CustomFluidInt
 	
 	@Redirect(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;swimUpward(Lnet/minecraft/tag/TagKey;)V"))
 	private void redirectSwimUpward(LivingEntity instance, TagKey<Fluid> fluid) {
-		swimUpward(isInCustomFluid() ? ExampleMod.FABRIC_FLUIDS : fluid);
+		swimUpward(isInCustomFluid() ? QuiltFluidAPI.QUILT_FLUIDS : fluid);
 	}
 
 	@Redirect(method = "baseTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getAir()I", ordinal = 2))
 	private int baseTick(LivingEntity instance) {
-		if (isSubmergedInCustomFluid(ExampleMod.FABRIC_FLUIDS)) {
+		if (isSubmergedInCustomFluid(QuiltFluidAPI.QUILT_FLUIDS)) {
 			FluidState fluidState = this.world.getFluidState(getBlockPos());
 			if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid) {
 				fluid.drownEffects(fluidState, instance, getRandom());

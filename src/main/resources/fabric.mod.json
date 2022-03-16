@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "quilt_fluid_api",
   "version": "${version}",
 
-  "name": "Example Mod",
+  "name": "Quilt Fluid API",
   "description": "This is an example description! Tell everyone what your mod is about!",
   "authors": [
     "Me!"
@@ -14,16 +14,16 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/quilt_fluid_api/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "org.quiltmc.qsl.fluid.QuiltFluidAPI"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "quilt_fluid_api.mixins.json"
   ],
 
   "depends": {

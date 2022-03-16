@@ -1,14 +1,13 @@
-package net.fabricmc.example.mixin;
+package org.quiltmc.qsl.fluid.mixin;
 
 
-import net.fabricmc.example.ExampleMod;
-import net.fabricmc.example.fluid.FlowableFluidExtensions;
-import net.fabricmc.example.interfaces.CustomFluidInteracting;
+import org.quiltmc.qsl.fluid.QuiltFluidAPI;
+import org.quiltmc.qsl.fluid.fluid.FlowableFluidExtensions;
+import org.quiltmc.qsl.fluid.interfaces.CustomFluidInteracting;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.tag.Tag;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -102,7 +101,7 @@ public abstract class EntityMixin implements CustomFluidInteracting {
 		FluidState fluidState = this.world.getFluidState(this.getBlockPos());
 		if (fluidState.getFluid() instanceof FlowableFluidExtensions fluid &&
 				!(getVehicle() instanceof BoatEntity) &&
-				updateMovementInFluid(ExampleMod.FABRIC_FLUIDS, fluid.getPushStrength(fluidState, (Entity) (Object) this))) {
+				updateMovementInFluid(QuiltFluidAPI.QUILT_FLUIDS, fluid.getPushStrength(fluidState, (Entity) (Object) this))) {
 			if (!inCustomFluid && !firstUpdate) {
 				customSplashEffects();
 			}
@@ -121,7 +120,7 @@ public abstract class EntityMixin implements CustomFluidInteracting {
 	}
 	
 	private void updateSubmergedInCustomFluidState() {
-		this.submergedInCustomFluid = this.isSubmergedInCustomFluid(ExampleMod.FABRIC_FLUIDS);
+		this.submergedInCustomFluid = this.isSubmergedInCustomFluid(QuiltFluidAPI.QUILT_FLUIDS);
 		this.submergedCustomFluidTag = null;
 		double d = this.getEyeY() - 0.1111111119389534D;
 		Entity entity = this.getVehicle();
@@ -137,7 +136,7 @@ public abstract class EntityMixin implements CustomFluidInteracting {
 		
 		double e = (float) blockPos.getY() + fluidState.getHeight(this.world, blockPos);
 		if (e > d) {
-			this.submergedCustomFluidTag = ExampleMod.FABRIC_FLUIDS;
+			this.submergedCustomFluidTag = QuiltFluidAPI.QUILT_FLUIDS;
 		}
 		
 	}
@@ -158,7 +157,7 @@ public abstract class EntityMixin implements CustomFluidInteracting {
 			if (this.isSwimming()) {
 				this.setSwimming(this.isSprinting() && canSwimIn && this.isInCustomFluid() && !this.hasVehicle());
 			} else {
-				this.setSwimming(this.isSprinting() && this.isSubmergedInCustomFluid() && canSwimIn && !this.hasVehicle() && this.world.getFluidState(this.blockPos).isIn(ExampleMod.FABRIC_FLUIDS));
+				this.setSwimming(this.isSprinting() && this.isSubmergedInCustomFluid() && canSwimIn && !this.hasVehicle() && this.world.getFluidState(this.blockPos).isIn(QuiltFluidAPI.QUILT_FLUIDS));
 			}
 			
 		}

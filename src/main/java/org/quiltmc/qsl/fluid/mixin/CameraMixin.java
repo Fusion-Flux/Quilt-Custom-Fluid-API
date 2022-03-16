@@ -1,6 +1,6 @@
-package net.fabricmc.example.mixin;
+package org.quiltmc.qsl.fluid.mixin;
 
-import net.fabricmc.example.interfaces.CameraExtensions;
+import org.quiltmc.qsl.fluid.interfaces.CameraExtensions;
 import net.minecraft.client.render.Camera;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.util.math.BlockPos;

@@ -1,4 +1,4 @@
-package net.fabricmc.example.fluid;
+package org.quiltmc.qsl.fluid.fluid;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -12,7 +12,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 
-public abstract class TutorialFluid extends FlowableFluid {
+public abstract class QuiltFluid extends FlowableFluid {
 	/**
 	 * @return whether the given fluid an instance of this fluid
 	 */
