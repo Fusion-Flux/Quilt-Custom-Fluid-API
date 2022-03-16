@@ -9,6 +9,7 @@ import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -35,7 +36,7 @@ public abstract class EntityMixin implements CustomFluidInteracting {
 	protected Random random;
 	protected boolean inCustomFluid;
 	protected boolean submergedInCustomFluid;
-	protected Tag<Fluid> submergedCustomFluidTag;
+	protected TagKey<Fluid> submergedCustomFluidTag;
 	@Shadow
 	private BlockPos blockPos;
 	
@@ -47,7 +48,7 @@ public abstract class EntityMixin implements CustomFluidInteracting {
 	public abstract Entity getVehicle();
 	
 	@Shadow
-	public abstract boolean updateMovementInFluid(Tag<Fluid> tag, double d);
+	public abstract boolean updateMovementInFluid(TagKey<Fluid> tag, double d);
 
 	@Shadow
 	public abstract void extinguish();
@@ -141,7 +142,7 @@ public abstract class EntityMixin implements CustomFluidInteracting {
 		
 	}
 	
-	public boolean isSubmergedInCustomFluid(Tag<Fluid> fluidTag) {
+	public boolean isSubmergedInCustomFluid(TagKey<Fluid> fluidTag) {
 		return this.submergedCustomFluidTag == fluidTag;
 	}
 	

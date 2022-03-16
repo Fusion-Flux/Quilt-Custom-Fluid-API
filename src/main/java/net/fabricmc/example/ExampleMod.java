@@ -3,7 +3,6 @@ package net.fabricmc.example;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.example.fluid.OilFluid;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.fabricmc.fabric.api.tag.TagFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FluidBlock;
@@ -13,6 +12,7 @@ import net.minecraft.item.BucketItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
@@ -23,7 +23,7 @@ public class ExampleMod implements ModInitializer {
 	// It is considered best practice to use your mod id as the logger's name.
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LogManager.getLogger("modid");
-	public static final Tag<Fluid> FABRIC_FLUIDS = TagFactory.FLUID.create(new Identifier("modid", "fabric_fluid"));
+	public static final TagKey<Fluid> FABRIC_FLUIDS = TagKey.of(Registry.FLUID_KEY,new Identifier("modid", "fabric_fluid"));
 	public static FlowableFluid STILL_OIL;
 	public static FlowableFluid FLOWING_OIL;
 	public static Item OIL_BUCKET;

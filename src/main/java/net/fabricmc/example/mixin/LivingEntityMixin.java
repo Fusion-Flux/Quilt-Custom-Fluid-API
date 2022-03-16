@@ -10,6 +10,7 @@ import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.tag.FluidTags;
 import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
@@ -45,16 +46,17 @@ public abstract class LivingEntityMixin extends Entity implements CustomFluidInt
 	@Shadow
 	public abstract Random getRandom();
 
-	@Shadow public abstract boolean canWalkOnFluid(Fluid fluid);
-	
-	@Shadow protected abstract void swimUpward(Tag<Fluid> fluid);
+
+	@Shadow protected abstract void swimUpward(TagKey<Fluid> fluid);
 	
 	@Shadow public abstract void updateLimbs(LivingEntity entity, boolean flutter);
-	
+
+	@Shadow public abstract boolean canWalkOnFluid(FluidState fluidState);
+
 	@Redirect(method = "travel", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;isFallFlying()Z"))
 	private boolean redirectFallFlyingToAddCase(LivingEntity instance, Vec3d movementInput) {
 		FluidState fluidState = world.getFluidState(getBlockPos());
-		if (this.isInCustomFluid() && this.shouldSwimInFluids() && !this.canWalkOnFluid(fluidState.getFluid())) {
+		if (this.isInCustomFluid() && this.shouldSwimInFluids() && !this.canWalkOnFluid(fluidState)) {
 			double fallSpeed = 0.08;
 			boolean falling = this.getVelocity().y <= 0.0;
 			if (falling && this.hasStatusEffect(StatusEffects.SLOW_FALLING)) {
@@ -98,15 +100,15 @@ public abstract class LivingEntityMixin extends Entity implements CustomFluidInt
 	
 	@Inject(method = "travel", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getVelocityAffectingPos()Lnet/minecraft/util/math/BlockPos;"), cancellable = true)
 	private void cancelIfCustomFluid(Vec3d movementInput, CallbackInfo ci) {
-		if (this.isInCustomFluid() && this.shouldSwimInFluids() && !this.canWalkOnFluid(world.getFluidState(getBlockPos()).getFluid())) {
+		if (this.isInCustomFluid() && this.shouldSwimInFluids() && !this.canWalkOnFluid(world.getFluidState(getBlockPos()))) {
 			this.updateLimbs((LivingEntity) (Object) this, this instanceof Flutterer);
 			ci.cancel();
 		}
 	}
 	
 	@Redirect(method = "tickMovement",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getFluidHeight(Lnet/minecraft/tag/Tag;)D", ordinal = 1))
-	private double redirectGetFluidHeight(LivingEntity instance, Tag<Fluid> tag) {
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;getFluidHeight(Lnet/minecraft/tag/TagKey;)D", ordinal = 1))
+	private double redirectGetFluidHeight(LivingEntity instance, TagKey<Fluid> tag) {
 		if (isInCustomFluid()) {
 			return getFluidHeight(ExampleMod.FABRIC_FLUIDS);
 		}
@@ -125,8 +127,8 @@ public abstract class LivingEntityMixin extends Entity implements CustomFluidInt
 		return isTouchingWater();
 	}
 	
-	@Redirect(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;swimUpward(Lnet/minecraft/tag/Tag;)V"))
-	private void redirectSwimUpward(LivingEntity instance, Tag<Fluid> fluid) {
+	@Redirect(method = "tickMovement", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;swimUpward(Lnet/minecraft/tag/TagKey;)V"))
+	private void redirectSwimUpward(LivingEntity instance, TagKey<Fluid> fluid) {
 		swimUpward(isInCustomFluid() ? ExampleMod.FABRIC_FLUIDS : fluid);
 	}
 

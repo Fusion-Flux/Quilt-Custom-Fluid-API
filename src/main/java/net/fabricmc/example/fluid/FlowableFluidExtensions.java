@@ -43,7 +43,7 @@ public interface FlowableFluidExtensions {
 	 * The color of this fluid.
 	 */
 	default int getColor(FluidState state, World world, BlockPos pos) {
-		return world.getBiome(pos).getWaterColor();
+		return world.getBiome(pos).value().getWaterColor();
 	}
 	
 	/**
@@ -169,10 +169,10 @@ public interface FlowableFluidExtensions {
 		float distance = 192.0F;
 		if (affected instanceof ClientPlayerEntity player) {
 			distance *= Math.max(0.25F, player.getUnderwaterVisibility());
-			Biome biome = player.world.getBiome(player.getBlockPos());
+			/*Biome biome = player.world.getBiome(player.getBlockPos());
 			if (biome.getCategory() == Biome.Category.SWAMP) {
 				distance *= 0.85F;
-			}
+			}*/
 		}
 		return distance * 0.5f;
 	}
