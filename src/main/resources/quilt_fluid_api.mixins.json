@@ -9,6 +9,7 @@
     "CameraMixin",
     "ClientPlayerEntityMixin",
     "EntityMixin",
+    "FishingBobberEntityMixin",
     "LavaFluidMixin",
     "LivingEntityMixin",
     "WaterFluidMixin"

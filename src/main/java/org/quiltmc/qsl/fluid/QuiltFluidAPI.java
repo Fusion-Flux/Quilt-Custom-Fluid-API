@@ -1,5 +1,6 @@
 package org.quiltmc.qsl.fluid;
 
+import com.llamalad7.mixinextras.MixinExtrasBootstrap;
 import net.fabricmc.api.ModInitializer;
 import org.quiltmc.qsl.fluid.fluid.OilFluid;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;

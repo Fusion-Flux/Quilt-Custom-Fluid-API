@@ -95,7 +95,11 @@ public interface FlowableFluidExtensions {
 	default boolean enableSpacebarSwimming(FluidState state, Entity affected) {
 		return true;
 	}
-	
+
+	default boolean bobberFloats(FluidState state, Entity affected) {
+		return true;
+	}
+
 	default boolean canExtinguish(FluidState state, Entity affected) {
 		return true;
 	}

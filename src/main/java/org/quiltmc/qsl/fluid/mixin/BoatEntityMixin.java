@@ -1,73 +1,102 @@
 package org.quiltmc.qsl.fluid.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.tag.FluidTags;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.quiltmc.qsl.fluid.QuiltFluidAPI;
+import org.quiltmc.qsl.fluid.fluid.FlowableFluidExtensions;
 import org.quiltmc.qsl.fluid.interfaces.CustomFluidInteracting;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(BoatEntity.class)
 public abstract class BoatEntityMixin extends Entity implements CustomFluidInteracting {
-    @Shadow private double waterLevel;
+    @Shadow
+    private double waterLevel;
 
-    @Shadow private BoatEntity.Location location;
+    @Shadow
+    private BoatEntity.Location location;
 
     public BoatEntityMixin(EntityType<?> type, World world) {
         super(type, world);
     }
 
-    // just need to implement the interface, defaults are based on water
-    @Inject(method = "method_7544", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z"),locals = LocalCapture.CAPTURE_FAILSOFT)
-    public void method_7544(CallbackInfoReturnable<Float> cir, Box box,int i,int j,int k, int l, int m, int n, BlockPos.Mutable mutable,int o,float f,int p ,int q,FluidState fluidState) {
-        if (fluidState.isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
-            f = Math.max(f, fluidState.getHeight(this.world, mutable));//needs a modifyvariable
+
+    @ModifyReceiver(
+            method = "method_7544",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z")
+    )
+    private FluidState changeObject(FluidState receiver, TagKey fluidTag) {
+        if (receiver.isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
+            return Fluids.WATER.getDefaultState();
         }
+        return receiver;
     }
 
-
-    @Inject(method = "checkBoatInWater", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z"),locals = LocalCapture.CAPTURE_FAILSOFT,cancellable = true)
-    private void checkBoatInWater(CallbackInfoReturnable<Boolean> cir, Box box,int i,int j,int k, int l, int m, int n, boolean bl, BlockPos.Mutable mutable, int o, int p, int q, FluidState fluidState) {
-        if (fluidState.isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
-            float f = (float)p + fluidState.getHeight(this.world, mutable);
-            this.waterLevel = Math.max((double)f, this.waterLevel);
-            bl |= box.minY < (double)f;//needs a modifyvariable
+    @ModifyReceiver(
+            method = "checkBoatInWater",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z")
+    )
+    private FluidState checkFluidModify(FluidState receiver, TagKey fluidTag) {
+        if (receiver.isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
+            return Fluids.WATER.getDefaultState();
         }
+        return receiver;
     }
 
-    @Inject(method = "getUnderWaterLocation", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z"),locals = LocalCapture.CAPTURE_FAILSOFT,cancellable = true)
-    private void getUnderWaterLocation(CallbackInfoReturnable<BoatEntity.Location> cir,Box box,double d,int i,int j,int k,int l,int m,int n,boolean bl,BlockPos.Mutable mutable,int o,int p,int q,FluidState fluidState) {
-        if (fluidState.isIn(QuiltFluidAPI.QUILT_FLUIDS) && d < (double)((float)mutable.getY() + fluidState.getHeight(this.world, mutable))) {
-            if (!fluidState.isStill()) {
-                cir.setReturnValue(BoatEntity.Location.UNDER_FLOWING_WATER);
-                cir.cancel();
-            }
-            bl = true;//needs a modifyvariable
+    @ModifyReceiver(
+            method = "getUnderWaterLocation",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z")
+    )
+    private FluidState getUnderwaterModify(FluidState receiver, TagKey fluidTag) {
+        if (receiver.isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
+            return Fluids.WATER.getDefaultState();
         }
+        return receiver;
     }
 
     @Inject(method = "fall", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getFluidState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/fluid/FluidState;"), cancellable = true)
     protected void fall(double heightDifference, boolean onGround, BlockState landedState, BlockPos landedPosition, CallbackInfo ci) {
         if (!this.world.getFluidState(this.getBlockPos().down()).isIn(QuiltFluidAPI.QUILT_FLUIDS) && heightDifference < 0.0) {
-            this.fallDistance -= (float)heightDifference;
+            this.fallDistance -= (float) heightDifference;
         }
         if (this.world.getFluidState(this.getBlockPos().down()).isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
             ci.cancel();
         }
     }
 
+    @Inject(method = "updateVelocity", at = @At(value = "TAIL"))
+    private void updateVelocity(CallbackInfo ci) {
+        if(this.isInCustomFluid()){
+            FluidState fluidState = world.getFluidState(getBlockPos());
+            float horizVisc = 0.8f;
+            float vertVisc = 0.8f;
+
+            if ((fluidState.getFluid() instanceof FlowableFluidExtensions fluid)) {
+                horizVisc = this.isSprinting() ? 0.9f : fluid.getHorizontalViscosity(fluidState, this);
+                vertVisc = fluid.getVerticalViscosity(fluidState, this);
+            }
+            Vec3d vec3d = this.getVelocity();
+            this.setVelocity(vec3d.multiply(horizVisc/.8, vertVisc/.8, horizVisc/.8));
+        }
+    }
 
     @Override
     public boolean isSubmergedInCustomFluid() {

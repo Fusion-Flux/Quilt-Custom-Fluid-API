@@ -18,6 +18,9 @@
 
   "environment": "*",
   "entrypoints": {
+    "preLaunch": [
+      "com.llamalad7.mixinextras.MixinExtrasBootstrap::init"
+    ],
     "main": [
       "org.quiltmc.qsl.fluid.QuiltFluidAPI"
     ]
