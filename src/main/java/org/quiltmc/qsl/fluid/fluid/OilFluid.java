@@ -80,6 +80,11 @@ public class OilFluid extends QuiltFluid implements FlowableFluidExtensions {
 	}
 
 	@Override
+	public boolean canIgnite(FluidState state, Entity affected) {
+		return false;
+	}
+
+	@Override
 	public float modifyHorizontalViscosity(LivingEntity entity, float horizVisc) {
 		if (entity.hasStatusEffect(StatusEffects.DOLPHINS_GRACE)) {
 			horizVisc = 0.96F;
