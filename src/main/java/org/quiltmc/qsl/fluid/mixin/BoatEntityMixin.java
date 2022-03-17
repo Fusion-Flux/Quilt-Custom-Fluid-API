@@ -33,7 +33,7 @@ public abstract class BoatEntityMixin extends Entity implements CustomFluidInter
     @Inject(method = "method_7544", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z"),locals = LocalCapture.CAPTURE_FAILSOFT)
     public void method_7544(CallbackInfoReturnable<Float> cir, Box box,int i,int j,int k, int l, int m, int n, BlockPos.Mutable mutable,int o,float f,int p ,int q,FluidState fluidState) {
         if (fluidState.isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
-            f = Math.max(f, fluidState.getHeight(this.world, mutable));
+            f = Math.max(f, fluidState.getHeight(this.world, mutable));//needs a modifyvariable
         }
     }
 
@@ -43,9 +43,7 @@ public abstract class BoatEntityMixin extends Entity implements CustomFluidInter
         if (fluidState.isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
             float f = (float)p + fluidState.getHeight(this.world, mutable);
             this.waterLevel = Math.max((double)f, this.waterLevel);
-            bl |= box.minY < (double)f;
-            cir.setReturnValue(bl);
-            cir.cancel();
+            bl |= box.minY < (double)f;//needs a modifyvariable
         }
     }
 
@@ -55,11 +53,8 @@ public abstract class BoatEntityMixin extends Entity implements CustomFluidInter
             if (!fluidState.isStill()) {
                 cir.setReturnValue(BoatEntity.Location.UNDER_FLOWING_WATER);
                 cir.cancel();
-                //return BoatEntity.Location.UNDER_FLOWING_WATER;
             }
-            cir.setReturnValue(BoatEntity.Location.UNDER_WATER);
-            cir.cancel();
-            //bl = true;
+            bl = true;//needs a modifyvariable
         }
     }
 
