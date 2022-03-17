@@ -1,10 +1,12 @@
 package org.quiltmc.qsl.fluid.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReceiver;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.FishingBobberEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.tag.FluidTags;
 import net.minecraft.tag.TagKey;
 import net.minecraft.util.math.BlockPos;
@@ -19,25 +21,12 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(FishingBobberEntity.class)
 public abstract class FishingBobberEntityMixin implements CustomFluidInteracting {
 
-    @ModifyVariable(
-            method = "tick",
-            at = @At(value = "STORE", ordinal = 0)
-    )
-    public float customFluidCheck(float f) {
-        BlockPos blockPos = ((FishingBobberEntity) (Object) this).getBlockPos();
-        FluidState fluidState = ((FishingBobberEntity) (Object) this).world.getFluidState(blockPos);
-        if ((fluidState.getFluid() instanceof FlowableFluidExtensions fluid)) {
-            if (fluidState.isIn(QuiltFluidAPI.QUILT_FLUIDS) && fluid.bobberFloats(fluidState, (Entity) ((FishingBobberEntity) (Object) this))) {
-                return fluidState.getHeight(((FishingBobberEntity) (Object) this).world, blockPos);
-            }
+    @ModifyReceiver(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z"))
+    private FluidState checkForCustomFluid(FluidState receiver, TagKey fluidTag) {
+        if (receiver.isIn(QuiltFluidAPI.QUILT_FLUIDS)) {
+            return Fluids.WATER.getDefaultState();
         }
-        return f;
+        return receiver;
     }
 
-    @ModifyExpressionValue(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/fluid/FluidState;isIn(Lnet/minecraft/tag/TagKey;)Z", ordinal = 1))
-    private boolean onlyIfInNoFluid(boolean original) {
-        BlockPos blockPos = ((FishingBobberEntity) (Object) this).getBlockPos();
-        FluidState fluidState = ((FishingBobberEntity) (Object) this).world.getFluidState(blockPos);
-        return original || fluidState.isIn(QuiltFluidAPI.QUILT_FLUIDS);
-    }
 }
