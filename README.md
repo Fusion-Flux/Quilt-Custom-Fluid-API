@@ -1,1 +1,2 @@
-sschr15 cope
+# Quilt-Custom-Fluid-API
+an API for custom fluids using Quilt
